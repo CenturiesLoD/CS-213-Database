@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Register</h2>
+
+<p>Select your user type and fill in the corresponding fields.</p>
+
+<form method="post">
+    <label>User Type:</label>
+    <select name="user_type" required>
+        <option value="customer">Customer</option>
+        <option value="agent">Booking Agent</option>
+        <option value="staff">Airline Staff</option>
+    </select>
+    <br><br>
+
+    <!-- 共用的登录ID字段：customer/agent 用作 email，staff 用作 username -->
+    <label>Email / Username (for staff):</label>
+    <input type="text" name="identifier" required>
+    <br><br>
+
+    <label>Password:</label>
+    <input type="password" name="password" required>
+    <br><br>
+
+    <hr>
+    <h3>Customer Information (if registering as Customer)</h3>
+
+    <label>Name:</label>
+    <input type="text" name="name">
+    <br><br>
+
+    <label>Building Number:</label>
+    <input type="text" name="building_number">
+    <br><br>
+
+    <label>Street:</label>
+    <input type="text" name="street">
+    <br><br>
+
+    <label>City:</label>
+    <input type="text" name="city">
+    <br><br>
+
+    <label>State:</label>
+    <input type="text" name="state">
+    <br><br>
+
+    <label>Phone Number:</label>
+    <input type="text" name="phone_number">
+    <br><br>
+
+    <label>Passport Number:</label>
+    <input type="text" name="passport_number">
+    <br><br>
+
+    <label>Passport Expiration (YYYY-MM-DD):</label>
+    <input type="date" name="passport_expiration">
+    <br><br>
+
+    <label>Passport Country:</label>
+    <input type="text" name="passport_country">
+    <br><br>
+
+    <label>Date of Birth (YYYY-MM-DD):</label>
+    <input type="date" name="date_of_birth">
+    <br><br>
+
+    <hr>
+    <h3>Airline Staff Information (if registering as Staff)</h3>
+
+    <label>First Name:</label>
+    <input type="text" name="first_name">
+    <br><br>
+
+    <label>Last Name:</label>
+    <input type="text" name="last_name">
+    <br><br>
+
+    <label>Date of Birth (YYYY-MM-DD):</label>
+    <input type="date" name="staff_date_of_birth">
+    <br><br>
+
+    <label>Airline Name:</label>
+    <input type="text" name="airline_name">
+    <br><br>
+
+    <label>Role:</label>
+    <select name="role">
+        <option value="">--select--</option>
+        <option value="admin">admin</option>
+        <option value="operator">operator</option>
+        <option value="both">both</option>
+    </select>
+    <br><br>
+
+    <button type="submit">Register</button>
+</form>
+{% endblock %}

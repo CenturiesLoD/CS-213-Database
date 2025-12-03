@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Select User Type to Register</h2>
+
+<ul>
+    <li><a href="{{ url_for('auth.register_customer') }}">Register as Customer</a></li>
+    <li><a href="{{ url_for('auth.register_agent') }}">Register as Booking Agent</a></li>
+    <li><a href="{{ url_for('auth.register_staff') }}">Register as Airline Staff</a></li>
+</ul>
+
+{% endblock %}
