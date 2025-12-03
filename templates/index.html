@@ -1,10 +1,19 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Air Reservation System</title>
-</head>
-<body>
-    <h1>Welcome to the Air Reservation System</h1>
-    <p>This is a simple front page for our Part 3 project.</p>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}Home - Air Reservation{% endblock %}
+
+{% block content %}
+    <h2>Welcome!</h2>
+    <p>This is the front page of our airline reservation system.</p>
+
+    <h3>Airlines in our system:</h3>
+    {% if airlines %}
+        <ul>
+            {% for name in airlines %}
+                <li>{{ name }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No airlines found in the database.</p>
+    {% endif %}
+{% endblock %}
