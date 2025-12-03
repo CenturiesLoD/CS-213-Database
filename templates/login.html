@@ -1,5 +1,25 @@
 {% extends "base.html" %}
+
 {% block content %}
-<h2>Login Page</h2>
-<p>placeholder</p>
+<h2>Login</h2>
+
+<form method="post">
+    <label>User Type:</label>
+    <select name="user_type" required>
+        <option value="customer">Customer</option>
+        <option value="agent">Booking Agent</option>
+        <option value="staff">Airline Staff</option>
+    </select>
+    <br><br>
+
+    <label>Email / Username (for staff):</label>
+    <input type="text" name="identifier" required>
+    <br><br>
+
+    <label>Password:</label>
+    <input type="password" name="password" required>
+    <br><br>
+
+    <button type="submit">Login</button>
+</form>
 {% endblock %}

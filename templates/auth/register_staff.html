@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Airline Staff Registration</h2>
+
+<form method="POST">
+    <label>Username:</label>
+    <input type="text" name="username" required><br><br>
+
+    <label>Password:</label>
+    <input type="password" name="password" required><br><br>
+
+    <label>First Name:</label>
+    <input type="text" name="first_name" required><br><br>
+
+    <label>Last Name:</label>
+    <input type="text" name="last_name" required><br><br>
+
+    <label>Date of Birth:</label>
+    <input type="date" name="date_of_birth" required><br><br>
+
+    <label>Airline Name:</label>
+    <input type="text" name="airline_name" required><br><br>
+
+    <label>Role:</label>
+    <select name="role" required>
+        <option value="admin">admin</option>
+        <option value="operator">operator</option>
+        <option value="both">both</option>
+    </select><br><br>
+
+    <button type="submit">Submit</button>
+</form>
+
+{% endblock %}
