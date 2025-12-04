@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block content %}
+<h2>Flight Search Results</h2>
+
+{% if results %}
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>Airline</th>
+            <th>Flight Number</th>
+            <th>Departure Airport</th>
+            <th>Arrival Airport</th>
+            <th>Departure Time</th>
+            <th>Arrival Time</th>
+            <th>Status</th>
+            <th>Price</th>
+            <th>Purchase</th>
+        </tr>
+        {% for flight in results %}
+        <tr>
+            <td>{{ flight.airline_name }}</td>
+            <td>{{ flight.flight_num }}</td>
+            <td>{{ flight.departure_airport }}</td>
+            <td>{{ flight.arrival_airport }}</td>
+            <td>{{ flight.departure_time }}</td>
+            <td>{{ flight.arrival_time }}</td>
+            <td>{{ flight.status }}</td>
+            <td>{{ flight.price }}</td>
+            <td>
+                <a href="{{ url_for('customer.purchase', flight_num=flight.flight_num, airline=flight.airline_name) }}">
+                    Buy
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>No flights found matching your criteria.</p>
+{% endif %}
+
+<a href="{{ url_for('customer.search_flights') }}">← Back to Search</a>
+
+{% endblock %}
