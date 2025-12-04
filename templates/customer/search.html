@@ -1,5 +1,21 @@
 {% extends "base.html" %}
+
+{% block title %}Search Flights{% endblock %}
+
 {% block content %}
-<h2>Search Flights</h2>
-<p>placeholder</p>
+<h2>Search for Flights</h2>
+
+<form method="POST">
+    <label>From (City or Airport):</label>
+    <input type="text" name="departure" required><br><br>
+
+    <label>To (City or Airport):</label>
+    <input type="text" name="arrival" required><br><br>
+
+    <label>Departure Date:</label>
+    <input type="date" name="date" required><br><br>
+
+    <button type="submit">Search</button>
+</form>
+
 {% endblock %}

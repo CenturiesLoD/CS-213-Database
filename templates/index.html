@@ -6,6 +6,11 @@
     <h2>Welcome!</h2>
     <p>This is the front page of our airline reservation system.</p>
 
+    <div style="margin: 20px 0;">
+        <a href="{{ url_for('auth.register') }}">Register</a> |
+        <a href="{{ url_for('auth.login') }}">Login</a>
+    </div>
+
     <h3>Airlines in our system:</h3>
     {% if airlines %}
         <ul>
