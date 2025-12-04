@@ -2,6 +2,8 @@ from flask import Blueprint, render_template
 
 staff_bp = Blueprint("staff", __name__)
 
+#These are for the urls that the agent will use to access different pages
+#Urls lead to corresponding pages in the templates folder
 @staff_bp.route("/dashboard")
 def dashboard():
     return render_template("staff/dashboard.html")
