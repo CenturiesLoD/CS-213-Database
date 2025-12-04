@@ -5,13 +5,13 @@ from db import get_db_connection
 
 auth_bp = Blueprint("auth", __name__)
 
-
+#These are for the urls that the agent will use to access different pages
+#Urls lead to corresponding pages in the templates folder
 @auth_bp.route("/register")
 def register():
     return render_template("auth/choose_user_type.html")
 
-#These are for the urls that the agent will use to access different pages
-#Urls lead to corresponding pages in the templates folder
+
 @auth_bp.route("/register/customer", methods=["GET", "POST"])
 def register_customer():
     if request.method == "GET":

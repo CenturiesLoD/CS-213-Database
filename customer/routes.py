@@ -3,6 +3,9 @@ from db import get_db_connection
 
 customer_bp = Blueprint("customer", __name__)
 
+#These are for the urls that the agent will use to access different pages
+#Urls lead to corresponding pages in the templates folder
+
 @customer_bp.route("/dashboard")
 def dashboard():
     return render_template("customer/dashboard.html")
