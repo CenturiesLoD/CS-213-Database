@@ -18,9 +18,14 @@
     <label>Date of Birth:</label>
     <input type="date" name="date_of_birth" required><br><br>
 
-    <label>Airline Name:</label>
-    <input type="text" name="airline_name" required><br><br>
-
+    <label>Airline:</label>
+    <select name="airline_name" required>
+        <option value="">-- Select Airline --</option>
+        <option value="Airline A">Airline A</option>
+        <option value="Airline B">Airline B</option>
+    </select>
+    <br>
+    
     <label>Role:</label>
     <select name="role" required>
         <option value="admin">admin</option>
