@@ -11,12 +11,16 @@ def public_search_upcoming():
     # q will come from the search bar, e.g. ?q=JFK
     # HTML conventionally uses "q" for query
     q = request.args.get("q", "").strip()
+    qCity = request.args.get("qCity", "").strip()
+    qDate = request.args.get("qDate", "").strip()
 
     #introducing wild cards so if it appears, its accepted
     pattern = f"%{q.lower()}%" if q else ""
+    patternCity = f"%{qCity.lower()}%" if qCity else ""
+    patternDate = f"%{qDate}%" if qDate else ""
     flights_upcoming = []
 
-    if q:
+    if q or qCity or qDate:
         conn = get_db_connection()
         cursor = conn.cursor(pymysql.cursors.DictCursor)
         try:
@@ -37,19 +41,21 @@ def public_search_upcoming():
                 AND (LOWER(flight.departure_airport) LIKE %s 
                     OR LOWER(flight.arrival_airport) LIKE %s 
                     OR LOWER(airport.airport_city) LIKE %s
+                    OR LOWER(flight.arrival_time) LIKE %s
+                    OR LOWER(flight.departure_time) LIKE %s
                     )
                 ORDER BY flight.departure_time;
 
             """
             # Execute the query with the provided airport code for both departure and arrival
-            cursor.execute(sql, (pattern, pattern, pattern))
+            cursor.execute(sql, (pattern, pattern, patternCity, patternDate, patternDate))
             flights_upcoming = cursor.fetchall()
 
         finally:
             cursor.close()
             conn.close()
 
-    return render_template("public_search_upcoming.html", flights=flights_upcoming, q=q)
+    return render_template("public_search_upcoming.html", flights=flights_upcoming, q=q, qCity=qCity, qDate=qDate)
 
 @public_bp.route("/search/in_progress", methods=["GET"])
 def public_search_in_progress():

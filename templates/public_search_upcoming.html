@@ -5,6 +5,13 @@
 <form method="GET" action="{{ url_for('public.public_search_upcoming') }}">
   <label>Airport code (departure or arrival):</label>
   <input type="text" name="q" value="{{ q or '' }}" placeholder="e.g. JFK">
+
+  <label>City:</label>
+  <input type="text" name="qCity" value="{{ qCity or '' }}" placeholder="e.g. New York">
+
+  <label>Date:</label>
+  <input type="date" name="qDate" value="{{ qDate or '' }}" placeholder="e.g. 2024-06-01">
+
   <button type="submit">Search</button>
 </form>
 
