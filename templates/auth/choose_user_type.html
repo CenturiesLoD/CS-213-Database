@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <h2>Select User Type to Register</h2>
+<!-- when auth.register_customer is read, it goes to the blueprint auth and called the function register_customer -->
 
 <ul>
     <li><a href="{{ url_for('auth.register_customer') }}">Register as Customer</a></li>

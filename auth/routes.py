@@ -221,6 +221,8 @@ def login():
 
     except Exception as e:
         flash(f"Login failed: {e}")
+        #flash("WHAT")
+
         return render_template("login.html")
 
     finally:

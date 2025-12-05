@@ -1,5 +1,42 @@
 {% extends "base.html" %}
 {% block content %}
 <h2>Customer Dashboard</h2>
-<p>placeholder</p>
+
+{% if customer_email %}
+  <p>Logged in as: {{ customer_email }}</p>
+{% else %}
+  <p>You are not logged in. Get out.</p>
+{% endif %}
+
+{% if flights %}
+  <table>
+    <thead>
+      <tr>
+        <th>Airline</th>
+        <th>Flight #</th>
+        <th>Departure</th>
+        <th>Departure Time</th>
+        <th>Arrival</th>
+        <th>Arrival Time</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for f in flights %}
+      <tr>
+        <td>{{ f.airlinename }}</td>
+        <td>{{ f.flightnum }}</td>
+        <td>{{ f.departureairport }}</td>
+        <td>{{ f.departuretime }}</td>
+        <td>{{ f.arrivalairport }}</td>
+        <td>{{ f.arrivaltime }}</td>
+        <td>{{ f.status }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>No upcoming flights found.</p>
+{% endif %}
+
 {% endblock %}
