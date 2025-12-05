@@ -10,6 +10,16 @@
             <input type="text" name="q" placeholder="Search flights">
             <button type="submit">Search</button>
         </form>
+        <div>
+            {% if session.get('user_type') %}
+                <!-- pick email for customer/agent, username for staff -->
+                {% set user_label = session.get('email') or session.get('username') %}
+                <span>Logged in as: {{ user_label }}</span>
+                &nbsp;|&nbsp;
+                <a href="{{ url_for('auth.logout') }}">Logout</a>
+            
+            {% endif %}
+        </div>
     </nav>
     <hr>
 </header>

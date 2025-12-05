@@ -8,7 +8,9 @@
 
     <div style="margin: 20px 0;">
         <a href="{{ url_for('auth.register') }}">Register</a> |
-        <a href="{{ url_for('auth.login') }}">Login</a>
+        {% if not session.get('user_type') %}
+            <a href="{{ url_for('auth.login') }}">Login</a>
+        {% endif %}
     </div>
 
     <h3>Airlines in our system:</h3>

@@ -126,6 +126,21 @@ def register_staff():
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
+    #COULD BE IMRPOVED MAYBE?
+    # If already logged in, don't allow logging in again
+    if session.get("user_type"):
+        flash("You are already logged in. Please log out first if you want to switch accounts.")
+        user_type = session["user_type"]
+        if user_type == "customer":
+            return redirect(url_for("customer.dashboard"))
+        elif user_type == "agent":
+            return redirect(url_for("agent.dashboard"))
+        elif user_type == "staff":
+            return redirect(url_for("staff.dashboard"))
+
+    if request.method == "GET":
+        return render_template("login.html")
+    
     if request.method == "GET":
         return render_template("login.html")
 
@@ -232,6 +247,11 @@ def login():
         cursor.close()
         conn.close()
 
+#TEST TO SEE SESSION CONTENTS
+from flask import jsonify
+@auth_bp.route("/debug_session")
+def debug_session():
+    return jsonify(dict(session))
 
 @auth_bp.route("/logout")
 def logout():
