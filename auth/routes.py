@@ -187,7 +187,8 @@ def login():
             sql = "SELECT email, password FROM booking_agent WHERE email = %s"
             cursor.execute(sql, (identifier,))
             row = cursor.fetchone()
-            if not row:
+
+            if row is None:
                 flash("Agent not found.")
                 return render_template("login.html")
 

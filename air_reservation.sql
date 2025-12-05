@@ -78,7 +78,7 @@ CREATE TABLE `airplane` (
 
 CREATE TABLE `airport` (
   `airport_name` varchar(50) NOT NULL,
-  `airport_city` varchar(50) NOT NULL
+  `city` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
