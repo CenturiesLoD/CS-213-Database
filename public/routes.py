@@ -19,19 +19,21 @@ def public_search_upcoming():
         try:
             sql = """
                 SELECT
-                    airline_name,
-                    flight_num,
-                    departure_airport,
-                    departure_time,
-                    arrival_airport,
-                    arrival_time,
-                    status
-                FROM flight 
+                    flight.airline_name,
+                    flight.flight_num,
+                    flight.departure_airport,
+                    flight.departure_time,
+                    flight.arrival_airport,
+                    flight.arrival_time,
+                    flight.status
+                FROM flight
                 JOIN airport
-                WHERE status LIKE 'upcoming'
-                  AND (departure_airport LIKE %s OR arrival_airport LIKE %s
-                  OR )
-                ORDER BY departure_time
+                ON flight.departure_airport = airport.airport_name
+                OR flight.arrival_airport = airport.airport_name
+                WHERE flight.status = 'upcoming'
+                AND (flight.departure_airport LIKE %s OR flight.arrival_airport LIKE %s)
+                ORDER BY flight.departure_time;
+
             """
             # Execute the query with the provided airport code for both departure and arrival
             cursor.execute(sql, (q, q))
@@ -46,6 +48,10 @@ def public_search_upcoming():
 def public_search_in_progress():
     q = request.args.get("q", "").strip()
     flights_in_progress = []
+
+    if q:
+        conn = get_db_connection()
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
 
 
 
