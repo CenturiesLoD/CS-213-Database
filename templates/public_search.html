@@ -2,7 +2,7 @@
 {% block content %}
 <h2>Public Flight Search</h2>
 
-<form method="GET" action="{{ url_for('public.public_search') }}">
+<form method="GET" action="{{ url_for('public.public_search_upcoming') }}">
   <label>Airport code (departure or arrival):</label>
   <input type="text" name="q" value="{{ q or '' }}" placeholder="e.g. JFK">
   <button type="submit">Search</button>

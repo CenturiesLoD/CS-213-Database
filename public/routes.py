@@ -7,7 +7,7 @@ public_bp = Blueprint("public", __name__)
 #These are for the urls that the agent will use to access different pages
 #Urls lead to corresponding pages in the templates folder
 @public_bp.route("/search", methods=["GET"])
-def public_search():
+def public_search_upcoming():
     # q will come from the search bar, e.g. ?q=JFK
     # HTML conventionally uses "q" for query
     q = request.args.get("q", "").strip()
@@ -39,6 +39,7 @@ def public_search():
             conn.close()
 
     return render_template("public_search.html", flights=flights, q=q)
+
 
 @public_bp.route("/status")
 def public_status():
