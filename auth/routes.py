@@ -9,12 +9,14 @@ auth_bp = Blueprint("auth", __name__)
 #Urls lead to corresponding pages in the templates folder
 @auth_bp.route("/register")
 def register():
+    #will have different options for different user types
     return render_template("auth/choose_user_type.html")
 
-
+#registration for customers
 @auth_bp.route("/register/customer", methods=["GET", "POST"])
 def register_customer():
     if request.method == "GET":
+        #got form from register_customer.html
         return render_template("auth/register_customer.html")
 
     email = request.form.get("email")
@@ -53,6 +55,7 @@ def register_customer():
     except Exception as e:
         conn.rollback()
         flash(str(e))
+        #flash("STUPID")
         return redirect(url_for("auth.register_customer"))
     finally:
         cursor.close()
