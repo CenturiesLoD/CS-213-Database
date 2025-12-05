@@ -66,3 +66,25 @@ VALUES
 (1002, 'person2@mail.com', NULL, '2025-10-02'),
 (1003, 'person1@mail.com', NULL, '2025-10-03'),
 (1004, 'person2@mail.com', NULL, '2025-10-04');
+
+INSERT INTO flight (
+    airline_name,
+    flight_num,
+    departure_airport,
+    departure_time,
+    arrival_airport,
+    arrival_time,
+    price,
+    status,
+    airplane_id
+) VALUES (
+    'DemoAir1',               -- airline_name
+    101,                        -- flight_num
+    'JFK',                    -- departure_airport
+    '2025-1-1 10:00:00',    -- departure_time
+    'LAX',                    -- arrival_airport
+    '2025-1-1 13:00:00',    -- arrival_time
+    350,                      -- price
+    'upcoming',               -- status
+    1                         -- airplane_id
+);
