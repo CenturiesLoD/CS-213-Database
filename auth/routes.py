@@ -145,10 +145,13 @@ def login():
             sql = "SELECT email, password, name FROM customer WHERE email = %s"
             cursor.execute(sql, (identifier,))
             row = cursor.fetchone()
-            if not row:
+
+            if row is None:
                 flash("Customer not found.")
                 return render_template("login.html")
 
+            # row 现在是 dict，如：
+            # {'email': 'xxx', 'password': 'hashed...', 'name': 'Jenson'}
             email = row["email"]
             password_hash = row["password"]
             name = row["name"]
@@ -157,7 +160,7 @@ def login():
                 flash("Incorrect password.")
                 return render_template("login.html")
 
-            # 登录成功，写入 session
+            # success — 写入 session
             session.clear()
             session["user_type"] = "customer"
             session["email"] = email

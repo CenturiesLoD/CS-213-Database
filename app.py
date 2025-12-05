@@ -52,7 +52,7 @@ def home():
 
     # 5. send results to template
     # airlines = ["xxx", "yyy"] 
-    airlines = [row[0] for row in rows]
+    airlines = [row["airline_name"] for row in rows]
 
     return render_template("index.html", airlines=airlines)
 
