@@ -7,7 +7,7 @@ VALUES ('Airline A'), ('Airline B');
 -- ============================
 -- AIRPORT
 -- ============================
-INSERT INTO airport (airport_name, city)
+INSERT INTO airport (airport_name, airport_city)
 VALUES ('PVG', 'Shanghai'),
        ('JFK', 'New York'),
        ('LAX', 'Los Angeles'),
