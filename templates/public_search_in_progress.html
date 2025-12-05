@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>In-Progress Flight Status</h2>
+
+<!-- Especially designed so the user can enter into two boxes, 
+ since  providing the airline and flight number -->
+<form method="GET" action="{{ url_for('public.public_search_in_progress') }}">
+  <label>Airline:</label>
+  <input type="text" name="airline" value="{{ airline or '' }}" required>
+
+  <label>Flight #:</label>
+  <input type="text" name="flight_num" value="{{ flight_num or '' }}" required>
+
+  <button type="submit">Check Status</button>
+</form>
+
+{% if flights %}
+  <h3>Result</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Airline</th>
+        <th>Flight #</th>
+        <th>Departure</th>
+        <th>Departure Time</th>
+        <th>Arrival</th>
+        <th>Arrival Time</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for f in flights %}
+      <tr>
+        <td>{{ f.airline_name }}</td>
+        <td>{{ f.flight_num }}</td>
+        <td>{{ f.departure_airport }}</td>
+        <td>{{ f.departure_time }}</td>
+        <td>{{ f.arrival_airport }}</td>
+        <td>{{ f.arrival_time }}</td>
+        <td>{{ f.status }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% elif airline and flight_num %}
+  <p>No in-progress flight found for {{ airline }} flight {{ flight_num }}.</p>
+{% endif %}
+
+{% endblock %}

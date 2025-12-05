@@ -11,6 +11,9 @@ def public_search_upcoming():
     # q will come from the search bar, e.g. ?q=JFK
     # HTML conventionally uses "q" for query
     q = request.args.get("q", "").strip()
+
+    #introducing wild cards so if it appears, its accepted
+    pattern = f"%{q.lower()}%" if q else ""
     flights_upcoming = []
 
     if q:
@@ -31,13 +34,17 @@ def public_search_upcoming():
                 ON flight.departure_airport = airport.airport_name
                 OR flight.arrival_airport = airport.airport_name
                 WHERE flight.status = 'upcoming'
-                AND (flight.departure_airport LIKE %s OR flight.arrival_airport LIKE %s)
+                AND (LOWER(flight.departure_airport) LIKE %s 
+                    OR LOWER(flight.arrival_airport) LIKE %s 
+                    OR LOWER(airport.airport_city) LIKE %s
+                    )
                 ORDER BY flight.departure_time;
 
             """
             # Execute the query with the provided airport code for both departure and arrival
-            cursor.execute(sql, (q, q))
+            cursor.execute(sql, (pattern, pattern, pattern))
             flights_upcoming = cursor.fetchall()
+
         finally:
             cursor.close()
             conn.close()
@@ -46,12 +53,42 @@ def public_search_upcoming():
 
 @public_bp.route("/search/in_progress", methods=["GET"])
 def public_search_in_progress():
-    q = request.args.get("q", "").strip()
+    # Read query parameters from URL, e.g. /search/in_progress?airline=DemoAir1&flight_num=1001
+    airline = request.args.get("airline", "").strip()
+    flight_num = request.args.get("flight_num", "").strip()
+
     flights_in_progress = []
 
-    if q:
+    if airline and flight_num:
         conn = get_db_connection()
         cursor = conn.cursor(pymysql.cursors.DictCursor)
+        try:
+            sql = """
+                SELECT
+                    airline_name,
+                    flight_num,
+                    departure_airport,
+                    departure_time,
+                    arrival_airport,
+                    arrival_time,
+                    status
+                FROM flight
+                WHERE LOWER(airline_name) = %s
+                  AND flight_num = %s
+                  AND status = 'in-progress'
+            """
+            cursor.execute(sql, (airline.lower(), flight_num))
+            flights_in_progress = cursor.fetchall()
+        finally:
+            cursor.close()
+            conn.close()
+
+    return render_template(
+        "public_search_in_progress.html",
+        flights=flights_in_progress,
+        airline=airline,
+        flight_num=flight_num,
+    )
 
 
 
