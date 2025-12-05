@@ -6,12 +6,12 @@ public_bp = Blueprint("public", __name__)
 
 #These are for the urls that the agent will use to access different pages
 #Urls lead to corresponding pages in the templates folder
-@public_bp.route("/search", methods=["GET"])
+@public_bp.route("/search/upcoming", methods=["GET"])
 def public_search_upcoming():
     # q will come from the search bar, e.g. ?q=JFK
     # HTML conventionally uses "q" for query
     q = request.args.get("q", "").strip()
-    flights = []
+    flights_upcoming = []
 
     if q:
         conn = get_db_connection()
@@ -26,19 +26,27 @@ def public_search_upcoming():
                     arrival_airport,
                     arrival_time,
                     status
-                FROM flight
+                FROM flight 
+                JOIN airport
                 WHERE status LIKE 'upcoming'
-                  AND (departure_airport LIKE %s OR arrival_airport LIKE %s)
+                  AND (departure_airport LIKE %s OR arrival_airport LIKE %s
+                  OR )
                 ORDER BY departure_time
             """
             # Execute the query with the provided airport code for both departure and arrival
             cursor.execute(sql, (q, q))
-            flights = cursor.fetchall()
+            flights_upcoming = cursor.fetchall()
         finally:
             cursor.close()
             conn.close()
 
-    return render_template("public_search.html", flights=flights, q=q)
+    return render_template("public_search_upcoming.html", flights=flights_upcoming, q=q)
+
+@public_bp.route("/search/in_progress", methods=["GET"])
+def public_search_in_progress():
+    q = request.args.get("q", "").strip()
+    flights_in_progress = []
+
 
 
 @public_bp.route("/status")
