@@ -274,12 +274,11 @@ ALTER TABLE `ticket`
   ADD CONSTRAINT `ticket_ibfk_1` FOREIGN KEY (`airline_name`,`flight_num`) REFERENCES `flight` (`airline_name`, `flight_num`);
 COMMIT;
 
-ALTER TABLE 'customer'
-    MODIFY 'password' varchar(255) NOT NULL;
+ALTER TABLE `customer`
+    MODIFY `password` varchar(255) NOT NULL;
 
-ALTER TABLE 'booking_agent'
-    MODIFY 'password' varchar(255) NOT NULL;
-
+ALTER TABLE `booking_agent`
+    MODIFY `password` varchar(255) NOT NULL;
     ALTER TABLE `airline_staff`
       MODIFY `password` varchar(255) NOT NULL;
 
