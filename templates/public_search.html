@@ -1,5 +1,43 @@
 {% extends "base.html" %}
 {% block content %}
 <h2>Public Flight Search</h2>
-<p>placeholder</p>
+
+<form method="GET" action="{{ url_for('public.public_search') }}">
+  <label>Airport code (departure or arrival):</label>
+  <input type="text" name="q" value="{{ q or '' }}" placeholder="e.g. JFK">
+  <button type="submit">Search</button>
+</form>
+
+{% if flights %}
+  <h3>Results for "{{ q }}"</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Airline</th>
+        <th>Flight #</th>
+        <th>Departure</th>
+        <th>Departure Time</th>
+        <th>Arrival</th>
+        <th>Arrival Time</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for f in flights %}
+      <tr>
+        <td>{{ f.airline_name }}</td>
+        <td>{{ f.flight_num }}</td>
+        <td>{{ f.departure_airport }}</td>
+        <td>{{ f.departure_time }}</td>
+        <td>{{ f.arrival_airport }}</td>
+        <td>{{ f.arrival_time }}</td>
+        <td>{{ f.status }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% elif q %}
+  <p>No upcoming flights found for "{{ q }}".</p>
+{% endif %}
+
 {% endblock %}
