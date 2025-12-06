@@ -1,7 +1,7 @@
 {% extends "customer/search.html" %}
 
 <!-- will fill in block results from customer/search.html -->
-{% block results %}
+{% block dis_results %}
 <h2>Customer Search Results</h2>
 {% if results %}
   <table>
@@ -27,7 +27,7 @@
         <td>{{ f.departure_time }}</td>
         <td>{{ f.arrival_airport }}</td>
         <td>{{ f.arrival_time }}</td>
-        <td>{{ f.price }}</td>
+        <td>{{ f.price }}$</td>
         <td>{{ f.status }}</td>
         <td>
             <!-- USE POST FOR SECURITY REASONS -->

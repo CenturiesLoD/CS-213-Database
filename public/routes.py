@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session
+from flask import Blueprint, render_template, request, flash, redirect, url_for, session
 from db import get_db_connection
 import pymysql
 
@@ -34,32 +34,46 @@ def public_search_upcoming():
         cursor = conn.cursor(pymysql.cursors.DictCursor)
         try:
             sql = """
-                SELECT
-                    flight.airline_name,
-                    flight.flight_num,
-                    flight.departure_airport,
-                    flight.departure_time,
-                    flight.arrival_airport,
-                    flight.arrival_time,
-                    flight.status
-                FROM flight
-                JOIN airport
-                ON flight.departure_airport = airport.airport_name
-                OR flight.arrival_airport = airport.airport_name
-                WHERE flight.status = 'upcoming'
-                AND (
-                    LOWER(flight.arrival_airport) LIKE %s
-                    OR LOWER(flight.departure_airport) LIKE %s
-                    OR LOWER(airport.airport_city) LIKE %s
-                    OR LOWER(flight.arrival_time) LIKE %s
-                    OR LOWER(flight.departure_time) LIKE %s
-                    )
-                ORDER BY flight.departure_time;
+                    SELECT
+                    f.airline_name,
+                    f.flight_num,
+                    dep.airport_name   AS departure_airport_name,
+                    f.departure_airport,
+                    f.departure_time,
+                    arr.airport_name   AS arrival_airport_name,
+                    f.arrival_airport,
+                    f.arrival_time,
+                    f.price,
+                    f.status,
+                    f.airplane_id
+                        FROM flight AS f
+                        JOIN airport AS dep
+                        ON f.departure_airport = dep.airport_name
+                        JOIN airport AS arr
+                        ON f.arrival_airport = arr.airport_name
+                        WHERE f.status = 'upcoming'
+                        AND ( %s = '' OR LOWER(f.arrival_airport)   LIKE %s )
+                        AND ( %s = '' OR LOWER(f.departure_airport) LIKE %s )
+                        AND ( %s = '' OR LOWER(dep.airport_city)    LIKE %s  
+                            OR LOWER(arr.airport_city)    LIKE %s )
+                        AND ( %s = '' OR LOWER(f.arrival_time)      LIKE %s )
+                        AND ( %s = '' OR LOWER(f.departure_time)    LIKE %s )
+                        ORDER BY f.departure_time;
 
             """
-            # Execute the query with the provided airport code for both departure and arrival
-            cursor.execute(sql, (patternArrive, patternDepart, patternCity, patternDate, patternDate))
+
+            cursor.execute(
+                sql,
+                (patternArrive, patternArrive, 
+                patternDepart, patternDepart, 
+                patternCity, patternCity, patternCity,
+                patternDate, patternDate, 
+                patternDate, patternDate),
+            )
+            flash(len(flights_upcoming))
+
             flights_upcoming = cursor.fetchall()
+            flash(len(flights_upcoming))
 
         finally:
             cursor.close()

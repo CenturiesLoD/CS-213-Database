@@ -176,6 +176,7 @@ def login():
                 return render_template("login.html")
 
             # success — 写入 session
+            # IMPORTANT
             session.clear()
             session["user_type"] = "customer"
             session["email"] = email

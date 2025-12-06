@@ -88,34 +88,41 @@ def search_flights():
         # SQL copied from public_search_upcoming: upcoming flights filtered by
         # arrival/departure airport, city, and date. [file:281]
         sql = """
-            SELECT
-                flight.airline_name,
-                flight.flight_num,
-                flight.departure_airport,
-                flight.departure_time,
-                flight.arrival_airport,
-                flight.arrival_time,
-                flight.price,
-                flight.status,
-                flight.airplane_id
-            FROM flight
-            JOIN airport
-              ON flight.departure_airport = airport.airport_name
-              OR flight.arrival_airport   = airport.airport_name
-            WHERE flight.status = 'upcoming'
-              AND (
-                    LOWER(flight.arrival_airport)   LIKE %s
-                 OR LOWER(flight.departure_airport) LIKE %s
-                 OR LOWER(airport.airport_city)     LIKE %s
-                 OR LOWER(flight.arrival_time)      LIKE %s
-                 OR LOWER(flight.departure_time)    LIKE %s
-                  )
-            ORDER BY flight.departure_time;
-        """
+                    SELECT
+                    f.airline_name,
+                    f.flight_num,
+                    dep.airport_name   AS departure_airport_name,
+                    f.departure_airport,
+                    f.departure_time,
+                    arr.airport_name   AS arrival_airport_name,
+                    f.arrival_airport,
+                    f.arrival_time,
+                    f.price,
+                    f.status,
+                    f.airplane_id
+                        FROM flight AS f
+                        JOIN airport AS dep
+                        ON f.departure_airport = dep.airport_name
+                        JOIN airport AS arr
+                        ON f.arrival_airport = arr.airport_name
+                        WHERE f.status = 'upcoming'
+                        AND ( %s = '' OR LOWER(f.arrival_airport)   LIKE %s )
+                        AND ( %s = '' OR LOWER(f.departure_airport) LIKE %s )
+                        AND ( %s = '' OR LOWER(dep.airport_city)    LIKE %s  
+                            OR LOWER(arr.airport_city)    LIKE %s )
+                        AND ( %s = '' OR LOWER(f.arrival_time)      LIKE %s )
+                        AND ( %s = '' OR LOWER(f.departure_time)    LIKE %s )
+                        ORDER BY f.departure_time;
+
+            """
 
         cursor.execute(
             sql,
-            (patternArrive, patternDepart, patternCity, patternDate, patternDate),
+            (patternArrive, patternArrive, 
+            patternDepart, patternDepart, 
+            patternCity, patternCity, patternCity,
+            patternDate, patternDate, 
+            patternDate, patternDate),
         )
         flights = cursor.fetchall()
 
@@ -183,7 +190,117 @@ def my_flights():
 
 @customer_bp.route("/purchase", methods=["POST"])
 def purchase():
-    return render_template("customer/purchase.html")
+    if session.get("user_type") != "customer":
+        flash("You must log in as a customer to purchase.")
+        return redirect(url_for("auth.login"))
+    
+    #gets relevant info from browser
+    #session is from login
+    customer_email = session.get("email")
+    airline_name = request.form.get("airline_name", "").strip()
+    flight_num   = request.form.get("flight_num", "").strip()
+    airplane_id  = request.form.get("airplane_id", "").strip()
+
+    if not (airline_name and flight_num and airplane_id):
+        flash("Missing flight data.")
+        return redirect(url_for("customer.search_flights"))
+
+    conn = get_db_connection()
+    conn.begin()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    try:
+        # 1) Read current price and capacity (enforce server-side pricing/capacity)
+        sql_flight = """
+            SELECT f.price, f.status, a.seat_capacity AS seat_capacity
+            FROM flight f
+            JOIN airplane a
+              ON a.airline_name = f.airline_name
+             AND a.airplane_id  = f.airplane_id
+            WHERE f.airline_name = %s
+              AND f.flight_num   = %s
+              AND f.airplane_id  = %s
+            FOR UPDATE
+        """
+        cursor.execute(sql_flight, (airline_name, flight_num, airplane_id))
+        row = cursor.fetchone()
+        if not row:
+            raise ValueError("Flight not found.")
+        if row["status"] != "upcoming":
+            raise ValueError("Flight is not available for purchase.")
+
+        price = row["price"]
+        seat_capacity = row["seat_capacity"]
+
+        # Generate next ticket_id inside the transaction
+        cursor.execute("SELECT COALESCE(MAX(ticket_id), 0) AS max_id FROM ticket FOR UPDATE")
+        # flash("HI")
+        next_id = cursor.fetchone()["max_id"] + 1
+
+        # # Insert ticket with explicit ticket_id
+        # cursor.execute(
+        #     "INSERT INTO ticket (ticket_id, airline_name, flight_num) VALUES (%s, %s, %s)",
+        #     (next_id, airline_name, flight_num),
+        # )
+        # ticket_id = next_id
+        # flash("HI2")
+
+        # 2) Count tickets sold for this flight (lock to prevent over-sell)
+        sql_sold = """
+            SELECT COUNT(*) AS sold
+            FROM ticket t
+            JOIN purchases p ON p.ticket_id = t.ticket_id
+            WHERE t.airline_name = %s
+              AND t.flight_num   = %s
+            FOR UPDATE
+        """
+        cursor.execute(sql_sold, (airline_name, flight_num))
+        sold = cursor.fetchone()["sold"]
+
+        if sold >= seat_capacity:
+            raise ValueError("This flight is full.")
+
+        # 3) Create ticket (assumes AUTO_INCREMENT ticket_id)
+        flash("HI")
+
+        cursor.execute(
+            "INSERT INTO ticket (ticket_id, airline_name, flight_num) VALUES (%s, %s, %s)",
+            (next_id, airline_name, flight_num),
+        )
+
+        # 4) Insert purchase with server-side price
+        cursor.execute(
+            "INSERT INTO purchases (ticket_id, customer_email, purchase_date) "
+            "VALUES (%s, %s, CURDATE())",
+            (next_id, customer_email),
+        )
+
+        conn.commit()
+        seats_left = row["seat_capacity"] - sold
+        flash(f"Purchased {airline_name} flight {flight_num} at {price}. Seats left: {seats_left}")
+
+
+        #CONFIRMATION PAGE customer/purchase.html
+        seats_left_after = seat_capacity - (sold + 1)
+        return render_template(
+            "customer/purchase.html",
+            confirmed=True,
+            #next_id is ticket_id in effect
+            ticket_id=next_id,
+            airline_name=airline_name, flight_num=flight_num, airplane_id=airplane_id,
+            price=price,
+            # departure_airport=row["departure_airport"], departure_time=row["departure_time"],
+            # arrival_airport=row["arrival_airport"],   arrival_time=row["arrival_time"],
+            seat_capacity=seat_capacity, sold=sold + 1, seats_left=seats_left_after
+        )
+        #return redirect(url_for("customer.dashboard"))
+    except Exception as e:
+        conn.rollback()
+        flash(f"Purchase failed: {e}")
+        return redirect(url_for("customer.search_flights"))
+    finally:
+        cursor.close()
+        conn.close()
+    #return render_template("customer/purchase.html")
 
 @customer_bp.route("/spending/default")
 def spending_default():
