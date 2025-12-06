@@ -1,36 +1,51 @@
+
+<!-- going to a hub where hte user can go see different things. Doesn't show much on its own -->
 {% extends "base.html" %}
+{% block title %}Customer Dashboard{% endblock %}
+
 {% block content %}
 <h2>Customer Dashboard</h2>
 
-{% if customer_email %}
-  <p>Logged in as: {{ customer_email }}</p>
-{% else %}
-  <p>You are not logged in. Get out.</p>
-{% endif %}
+<p>Logged in as: {{ customer_email }}</p>
 
-{% if flights %}
-  <table>
+<div class="mb-3">
+  <a href="{{ url_for('customer.search_flights') }}" class="btn btn-primary">
+    Search & buy flights
+  </a>
+  <a href="{{ url_for('customer.my_flights') }}" class="btn btn-secondary">
+    View all purchased flights
+  </a>
+  <a href="{{ url_for('customer.spending_default') }}" class="btn btn-info">
+    View spending
+  </a>
+</div>
+
+<h3>Upcoming flights</h3>
+{% if flights and flights|length > 0 %}
+  <table class="table table-striped">
     <thead>
       <tr>
         <th>Airline</th>
         <th>Flight #</th>
-        <th>Departure</th>
-        <th>Departure Time</th>
-        <th>Arrival</th>
-        <th>Arrival Time</th>
+        <th>Departure airport</th>
+        <th>Departure time</th>
+        <th>Arrival airport</th>
+        <th>Arrival time</th>
         <th>Status</th>
+        <th>Tickets</th>
       </tr>
     </thead>
     <tbody>
       {% for f in flights %}
       <tr>
-        <td>{{ f.airlinename }}</td>
-        <td>{{ f.flightnum }}</td>
-        <td>{{ f.departureairport }}</td>
-        <td>{{ f.departuretime }}</td>
-        <td>{{ f.arrivalairport }}</td>
-        <td>{{ f.arrivaltime }}</td>
+        <td>{{ f.airline_name }}</td>
+        <td>{{ f.flight_num }}</td>
+        <td>{{ f.departure_airport }}</td>
+        <td>{{ f.departure_time }}</td>
+        <td>{{ f.arrival_airport }}</td>
+        <td>{{ f.arrival_time }}</td>
         <td>{{ f.status }}</td>
+        <td>{{ f.ticket_amount }}</td>
       </tr>
       {% endfor %}
     </tbody>
@@ -38,5 +53,5 @@
 {% else %}
   <p>No upcoming flights found.</p>
 {% endif %}
-
 {% endblock %}
+

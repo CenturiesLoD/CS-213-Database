@@ -1,5 +1,60 @@
 {% extends "base.html" %}
+{% block title %}Spending (Last 12 Months){% endblock %}
+
 {% block content %}
-<h2>Spending Report (Default)</h2>
-<p>placeholder</p>
+<h2>Spending Overview</h2>
+
+<p>
+  Total spending in the last 12 months:
+  <strong>{{ total_spending_12m }}</strong>
+</p>
+
+<div class="mb-3">
+  <a href="{{ url_for('customer.dashboard') }}" class="btn btn-secondary">
+    Back to dashboard
+  </a>
+  <a href="{{ url_for('customer.spending_custom') }}" class="btn btn-primary">
+    Custom spending view
+  </a>
+</div>
+
+<h3>Spending by month (last 6 months)</h3>
+<canvas id="spendingChart" width="400" height="200"></canvas>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  const spendingLabels = {{ labels|tojson|safe }};
+  const spendingValues = {{ values|tojson|safe }};
+
+  const ctx = document.getElementById('spendingChart').getContext('2d');
+  const spendingChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: spendingLabels,
+      datasets: [{
+        label: 'Monthly spending',
+        data: spendingValues,
+        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            // Adjust as needed for your currency
+            callback: function(value) {
+              return value;
+            }
+          }
+        }
+      }
+    }
+  });
+</script>
 {% endblock %}
+

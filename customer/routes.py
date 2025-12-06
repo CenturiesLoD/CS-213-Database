@@ -8,6 +8,7 @@ customer_bp = Blueprint("customer", __name__)
 #Urls lead to corresponding pages in the templates folder
 
 #12/5 19:25, working on dashboard
+#12/7 DASHBOARD ONLY SHOWS UPCOMING FLIGHTS
 @customer_bp.route("/dashboard")
 def dashboard():
 #    Require login as customer
@@ -27,19 +28,29 @@ def dashboard():
                 f.departure_time,
                 f.arrival_airport,
                 f.arrival_time,
-                f.status
+                f.status,
+                COUNT(*) AS ticket_amount
             FROM purchases p
             JOIN ticket t
-              ON p.ticket_id = t.ticket_id
+            ON p.ticket_id = t.ticket_id
             JOIN flight f
-              ON t.airline_name = f.airline_name
-             AND t.flight_num = f.flight_num
+            ON t.airline_name = f.airline_name
+            AND t.flight_num   = f.flight_num
             WHERE p.customer_email = %s
-              AND f.status = 'upcoming'
+            AND f.status = 'upcoming'
+            GROUP BY
+                f.airline_name,
+                f.flight_num,
+                f.departure_airport,
+                f.departure_time,
+                f.arrival_airport,
+                f.arrival_time,
+                f.status
             ORDER BY f.departure_time
-        """
+            """
         cursor.execute(sql, (customer_email,))
         flights = cursor.fetchall()
+
 
         # sql = """
         #     SELECT COUNT(*) AS flight_count
@@ -184,9 +195,52 @@ def search_flights():
 #         flight_num=flight_num,
 #     )
 
+#SHOULD SHOW ALL FLIGHTS THE CUSTOMER HAS EVER PURCHASED
 @customer_bp.route("/flights")
 def my_flights():
-    return render_template("customer/flights.html")
+    # Require login as customer
+    if session.get("user_type") != "customer":
+        flash("You must log in as a customer to view your flights.")
+        return redirect(url_for("auth.login"))
+
+    customer_email = session.get("email")
+
+    conn = get_db_connection()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    try:
+        sql = """
+        SELECT
+            p.ticket_id,
+            p.purchase_date,
+            f.airline_name,
+            f.flight_num,
+            f.departure_airport,
+            f.departure_time,
+            f.arrival_airport,
+            f.arrival_time,
+            f.price,
+            f.status
+        FROM purchases p
+        JOIN ticket t
+        ON p.ticket_id = t.ticket_id
+        JOIN flight f
+        ON t.airline_name = f.airline_name
+        AND t.flight_num   = f.flight_num
+        WHERE p.customer_email = %s
+        ORDER BY f.departure_time DESC;
+        """
+        cursor.execute(sql, (customer_email,))
+        purchases = cursor.fetchall()
+    finally:
+        cursor.close()
+        conn.close()
+
+    return render_template(
+        "customer/flights.html",
+        purchases=purchases,
+        customer_email=customer_email,
+    )
+
 
 @customer_bp.route("/purchase", methods=["POST"])
 def purchase():
@@ -302,9 +356,70 @@ def purchase():
         conn.close()
     #return render_template("customer/purchase.html")
 
+#12/7 2:00 AM spending page. 
 @customer_bp.route("/spending/default")
 def spending_default():
-    return render_template("customer/spending_default.html")
+    if session.get("user_type") != "customer":
+        flash("You must log in as a customer to view spending.")
+        return redirect(url_for("auth.login"))
+
+    customer_email = session.get("email")
+
+    conn = get_db_connection()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    try:
+        # 1) Total spending in last 12 months
+        sql_total = """
+            SELECT COALESCE(SUM(f.price), 0) AS total_spending
+            FROM purchases p
+            JOIN ticket t
+              ON p.ticket_id = t.ticket_id
+            JOIN flight f
+              ON t.airline_name = f.airline_name
+             AND t.flight_num   = f.flight_num
+            WHERE p.customer_email = %s
+              AND p.purchase_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+        """
+        cursor.execute(sql_total, (customer_email,))
+        row = cursor.fetchone()
+        total_spending_12m = row["total_spending"]
+
+        # 2) Month-by-month spending last 6 months (for bar chart)
+        # year_month IS RESERVED KEYWORD
+        sql_months = """
+            SELECT
+                DATE_FORMAT(p.purchase_date, '%%Y-%%m') AS yr_mth,
+                SUM(f.price) AS month_total
+            FROM purchases p
+            JOIN ticket t
+              ON p.ticket_id = t.ticket_id
+            JOIN flight f
+              ON t.airline_name = f.airline_name
+             AND t.flight_num   = f.flight_num
+            WHERE p.customer_email = %s
+              AND p.purchase_date >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+            GROUP BY DATE_FORMAT(p.purchase_date, '%%Y-%%m')
+            ORDER BY yr_mth
+        """
+        cursor.execute(sql_months, (customer_email,))
+        rows = cursor.fetchall()
+
+        labels = [r["yr_mth"] for r in rows]
+        values = [float(r["month_total"]) for r in rows]
+    except Exception as e:
+        flash(f"Failed to load spending data: {e}")
+        return redirect(url_for("customer.dashboard"))
+    finally:
+        cursor.close()
+        conn.close()
+
+    return render_template(
+        "customer/spending_default.html",
+        total_spending_12m=total_spending_12m,
+        labels=labels,
+        values=values,
+    )
+
 
 @customer_bp.route("/spending/custom")
 def spending_custom():
