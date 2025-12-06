@@ -3,8 +3,11 @@
 <h2>Public Flight Search</h2>
 
 <form method="GET" action="{{ url_for('public.public_search_upcoming') }}">
-  <label>Airport code (departure or arrival):</label>
-  <input type="text" name="q" value="{{ q or '' }}" placeholder="e.g. JFK">
+  <label>Airport code (arrival):</label>
+  <input type="text" name="qArrive" value="{{ qArrive or '' }}" placeholder="e.g. JFK">
+
+  <label>Airport code (departure):</label>
+  <input type="text" name="qDepart" value="{{ qDepart or '' }}" placeholder="e.g. LAX">
 
   <label>City:</label>
   <input type="text" name="qCity" value="{{ qCity or '' }}" placeholder="e.g. New York">
@@ -16,7 +19,16 @@
 </form>
 
 {% if flights %}
-  <h3>Results for "{{ q }}"</h3>
+  <h3>Search Results</h3>
+
+  <p>
+    Filters:
+    {% if qArrive %} Arrival airport = "{{ qArrive }}"{% endif %}
+    {% if qDepart %}{% if qArrive %};{% endif %} Departure airport = "{{ qDepart }}"{% endif %}
+    {% if qCity %}{% if qArrive or qDepart %};{% endif %} City = "{{ qCity }}"{% endif %}
+    {% if qDate %}{% if qArrive or qDepart or qCity %};{% endif %} Date = "{{ qDate }}"{% endif %}
+  </p>
+
   <table>
     <thead>
       <tr>
@@ -43,8 +55,8 @@
       {% endfor %}
     </tbody>
   </table>
-{% elif q %}
-  <p>No upcoming flights found for "{{ q }}".</p>
+{% elif qArrive or qDepart or qCity or qDate %}
+  <p>No upcoming flights found for your search.</p>
 {% endif %}
 
 {% endblock %}

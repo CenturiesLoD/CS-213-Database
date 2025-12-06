@@ -6,21 +6,29 @@ public_bp = Blueprint("public", __name__)
 
 #These are for the urls that the agent will use to access different pages
 #Urls lead to corresponding pages in the templates folder
+
+#TO BE SHARED WITH CUSTOMER SINCE THEY BOTH SEARCHING
+def query_upcoming_flights(qArrive, qDepart, qCity, qDate):
+    
+    pass
+
 @public_bp.route("/search/upcoming", methods=["GET"])
 def public_search_upcoming():
     # q will come from the search bar, e.g. ?q=JFK
     # HTML conventionally uses "q" for query
-    q = request.args.get("q", "").strip()
+    qArrive = request.args.get("qArrive", "").strip()
+    qDepart = request.args.get("qDepart", "").strip()
     qCity = request.args.get("qCity", "").strip()
     qDate = request.args.get("qDate", "").strip()
 
     #introducing wild cards so if it appears, its accepted
-    pattern = f"%{q.lower()}%" if q else ""
+    patternArrive = f"%{qArrive.lower()}%" if qArrive else ""
+    patternDepart = f"%{qDepart.lower()}%" if qDepart else ""
     patternCity = f"%{qCity.lower()}%" if qCity else ""
     patternDate = f"%{qDate}%" if qDate else ""
     flights_upcoming = []
 
-    if q or qCity or qDate:
+    if qArrive or qDepart or qCity or qDate:
         conn = get_db_connection()
         cursor = conn.cursor(pymysql.cursors.DictCursor)
         try:
@@ -38,8 +46,9 @@ def public_search_upcoming():
                 ON flight.departure_airport = airport.airport_name
                 OR flight.arrival_airport = airport.airport_name
                 WHERE flight.status = 'upcoming'
-                AND (LOWER(flight.departure_airport) LIKE %s 
-                    OR LOWER(flight.arrival_airport) LIKE %s 
+                AND (
+                    LOWER(flight.arrival_airport) LIKE %s
+                    OR LOWER(flight.departure_airport) LIKE %s
                     OR LOWER(airport.airport_city) LIKE %s
                     OR LOWER(flight.arrival_time) LIKE %s
                     OR LOWER(flight.departure_time) LIKE %s
@@ -48,14 +57,14 @@ def public_search_upcoming():
 
             """
             # Execute the query with the provided airport code for both departure and arrival
-            cursor.execute(sql, (pattern, pattern, patternCity, patternDate, patternDate))
+            cursor.execute(sql, (patternArrive, patternDepart, patternCity, patternDate, patternDate))
             flights_upcoming = cursor.fetchall()
 
         finally:
             cursor.close()
             conn.close()
 
-    return render_template("public_search_upcoming.html", flights=flights_upcoming, q=q, qCity=qCity, qDate=qDate)
+    return render_template("public_search_upcoming.html", flights=flights_upcoming, qArrive=qArrive, qDepart=qDepart, qCity=qCity, qDate=qDate)
 
 @public_bp.route("/search/in_progress", methods=["GET"])
 def public_search_in_progress():
