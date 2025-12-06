@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, redirect, url_for, session
 from db import get_db_connection
 import pymysql
 
@@ -8,8 +8,9 @@ public_bp = Blueprint("public", __name__)
 #Urls lead to corresponding pages in the templates folder
 
 #TO BE SHARED WITH CUSTOMER SINCE THEY BOTH SEARCHING
+#GIVING UP ON THE IDEA CUSTOMER WILL GET THEIR OWN SEARCH FUNCTION
 def query_upcoming_flights(qArrive, qDepart, qCity, qDate):
-    
+
     pass
 
 @public_bp.route("/search/upcoming", methods=["GET"])
@@ -105,7 +106,20 @@ def public_search_in_progress():
         flight_num=flight_num,
     )
 
+#Should handle cases when customer is searching from public search page
+@public_bp.before_request
+def _redirect_customer_from_public_search():
+    # Only intercept for these public endpoints
+    if session.get("user_type") == "customer" and request.endpoint in {
+        "public.public_search_upcoming",
 
+
+        #NOT NEEDED FOR NOWCAUSE YOU CANT BUY IN PROGRESS FLIGHTS
+        #"public.public_search_in_progress",
+    }:
+        # Preserve current query params (qArrive, qDepart, qCity, qDate, etc.)
+        args = request.args.to_dict(flat=True)  # MultiDict -> dict for url_for [web:304]
+        return redirect(url_for("customer.search_flights", **args))
 
 @public_bp.route("/status")
 def public_status():

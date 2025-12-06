@@ -1,45 +1,49 @@
-{% extends "base.html" %}
+{% extends "customer/search.html" %}
 
-{% block title %}Search Results{% endblock %}
-
-{% block content %}
-<h2>Flight Search Results</h2>
-
+<!-- will fill in block results from customer/search.html -->
+{% block results %}
+<h2>Customer Search Results</h2>
 {% if results %}
-    <table border="1" cellpadding="5">
-        <tr>
-            <th>Airline</th>
-            <th>Flight Number</th>
-            <th>Departure Airport</th>
-            <th>Arrival Airport</th>
-            <th>Departure Time</th>
-            <th>Arrival Time</th>
-            <th>Status</th>
-            <th>Price</th>
-            <th>Purchase</th>
-        </tr>
-        {% for flight in results %}
-        <tr>
-            <td>{{ flight.airline_name }}</td>
-            <td>{{ flight.flight_num }}</td>
-            <td>{{ flight.departure_airport }}</td>
-            <td>{{ flight.arrival_airport }}</td>
-            <td>{{ flight.departure_time }}</td>
-            <td>{{ flight.arrival_time }}</td>
-            <td>{{ flight.status }}</td>
-            <td>{{ flight.price }}</td>
-            <td>
-                <a href="{{ url_for('customer.purchase', flight_num=flight.flight_num, airline=flight.airline_name) }}">
-                    Buy
-                </a>
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
+  <table>
+    <thead>
+      <tr>
+        <th>Airline</th>
+        <th>Flight #</th>
+        <th>Departure</th>
+        <th>Departure Time</th>
+        <th>Arrival</th>
+        <th>Arrival Time</th>
+        <th>Price</th>
+        <th>Status</th>
+        <th>Buy</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for f in results %}
+      <tr>
+        <td>{{ f.airline_name }}</td>
+        <td>{{ f.flight_num }}</td>
+        <td>{{ f.departure_airport }}</td>
+        <td>{{ f.departure_time }}</td>
+        <td>{{ f.arrival_airport }}</td>
+        <td>{{ f.arrival_time }}</td>
+        <td>{{ f.price }}</td>
+        <td>{{ f.status }}</td>
+        <td>
+            <!-- USE POST FOR SECURITY REASONS -->
+          <form method="POST" action="{{ url_for('customer.purchase') }}">
+            <input type="hidden" name="airline_name" value="{{ f.airline_name }}">
+            <input type="hidden" name="flight_num" value="{{ f.flight_num }}">
+            <input type="hidden" name="airplane_id" value="{{ f.airplane_id }}">
+            <button type="submit">Buy</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 {% else %}
-    <p>No flights found matching your criteria.</p>
+  <p>No upcoming flights found.</p>
 {% endif %}
-
-<a href="{{ url_for('customer.search_flights') }}">← Back to Search</a>
 
 {% endblock %}
