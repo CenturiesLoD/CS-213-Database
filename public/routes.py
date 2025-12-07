@@ -19,67 +19,90 @@ def public_search_upcoming():
     # HTML conventionally uses "q" for query
     qArrive = request.args.get("qArrive", "").strip()
     qDepart = request.args.get("qDepart", "").strip()
-    qCity = request.args.get("qCity", "").strip()
-    qDate = request.args.get("qDate", "").strip()
+    qCityArr   = request.args.get("qCityArr",   "").strip()
+    qCityDep = request.args.get("qCityDep", "").strip()
+    qDate   = request.args.get("qDate",   "").strip()
 
-    #introducing wild cards so if it appears, its accepted
+    # introduce wild cards so if it appears, it's accepted (same as public)
     patternArrive = f"%{qArrive.lower()}%" if qArrive else ""
     patternDepart = f"%{qDepart.lower()}%" if qDepart else ""
-    patternCity = f"%{qCity.lower()}%" if qCity else ""
-    patternDate = f"%{qDate}%" if qDate else ""
+    patternCityArr   = f"%{qCityArr.lower()}%"   if qCityArr   else ""
+    patternCityDep = f"%{qCityDep.lower()}%"   if qCityDep   else ""
+    patternDate   = f"%{qDate}%"      if qDate   else ""
     flights_upcoming = []
 
-    if qArrive or qDepart or qCity or qDate:
+    if qArrive or qDepart or qCityArr or qCityDep or qDate:
         conn = get_db_connection()
         cursor = conn.cursor(pymysql.cursors.DictCursor)
         try:
             sql = """
-                    SELECT
+                SELECT
                     f.airline_name,
                     f.flight_num,
-                    dep.airport_name   AS departure_airport_name,
+                    dep.airport_name AS departure_airport_name,
                     f.departure_airport,
                     f.departure_time,
-                    arr.airport_name   AS arrival_airport_name,
+                    arr.airport_name AS arrival_airport_name,
                     f.arrival_airport,
                     f.arrival_time,
                     f.price,
                     f.status,
                     f.airplane_id
-                        FROM flight AS f
-                        JOIN airport AS dep
-                        ON f.departure_airport = dep.airport_name
-                        JOIN airport AS arr
-                        ON f.arrival_airport = arr.airport_name
-                        WHERE f.status = 'upcoming'
-                        AND ( %s = '' OR LOWER(f.arrival_airport)   LIKE %s )
-                        AND ( %s = '' OR LOWER(f.departure_airport) LIKE %s )
-                        AND ( %s = '' OR LOWER(dep.airport_city)    LIKE %s  
-                            OR LOWER(arr.airport_city)    LIKE %s )
-                        AND ( %s = '' OR LOWER(f.arrival_time)      LIKE %s )
-                        AND ( %s = '' OR LOWER(f.departure_time)    LIKE %s )
-                        ORDER BY f.departure_time;
+                FROM flight AS f
+                JOIN airport AS dep
+                ON f.departure_airport = dep.airport_name
+                JOIN city AS dep_city
+                ON dep.airport_city = dep_city.city_name
+                JOIN airport AS arr
+                ON f.arrival_airport = arr.airport_name
+                JOIN city AS arr_city
+                ON arr.airport_city = arr_city.city_name
+                WHERE f.status = 'upcoming'
+                -- Airport filter
+                -- patternArrive, patternArrive, patternDepart, patternDepart, 
+                AND (%s = '' OR LOWER(f.arrival_airport)   LIKE %s)
+                AND (%s = '' OR LOWER(f.departure_airport) LIKE %s)
 
-            """
+                
+                -- City filter: match ANY airport in that city for either leg
+                -- patternCityArr, patternCityArr, patternCityDep, patternCityDep,
+                AND (%s = '' OR LOWER(arr_city.city_name) LIKE %s)
+                AND( %s = '' OR LOWER(dep_city.city_name) LIKE %s )
 
+                -- Time filter
+                -- patternDate, patternDate, patternDate, patternDate
+                AND (%s = '' OR LOWER(f.arrival_time)      LIKE %s)
+                AND (%s = '' OR LOWER(f.departure_time)    LIKE %s)
+                ORDER BY f.departure_time;
+
+
+                """
+            #flash("Hi")
             cursor.execute(
                 sql,
                 (patternArrive, patternArrive, 
                 patternDepart, patternDepart, 
-                patternCity, patternCity, patternCity,
+                patternCityArr, patternCityArr, 
+                patternCityDep, patternCityDep,
                 patternDate, patternDate, 
                 patternDate, patternDate),
             )
-            flash(len(flights_upcoming))
+            #old debug stuff
+            #flash(len(flights_upcoming))
 
             flights_upcoming = cursor.fetchall()
-            flash(len(flights_upcoming))
+            #flash(len(flights_upcoming))
 
         finally:
             cursor.close()
             conn.close()
 
-    return render_template("public_search_upcoming.html", flights=flights_upcoming, qArrive=qArrive, qDepart=qDepart, qCity=qCity, qDate=qDate)
+    return render_template("public_search_upcoming.html", 
+                           flights=flights_upcoming, 
+                           qArrive=qArrive, qDepart=qDepart, 
+                           qCityArr=qCityArr, 
+                           qCityDep = qCityDep, 
+                           qDate=qDate)
 
 @public_bp.route("/search/in_progress", methods=["GET"])
 def public_search_in_progress():

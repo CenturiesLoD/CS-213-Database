@@ -72,23 +72,40 @@ def search_flights():
         return redirect(url_for("auth.login"))
 
     if request.method == "GET":
-        return render_template("customer/search.html")
+        #so inputs stay in the search box after search
+        qArrive = request.args.get("qArrive", "").strip()
+        qDepart = request.args.get("qDepart", "").strip()
+        qCityArr   = request.args.get("qCityArr", "").strip()
+        qCityDep = request.args.get("qCityDep", "").strip()
+        qDate   = request.args.get("qDate", "").strip()
+        return render_template(
+            "customer/search.html",
+            qArrive=qArrive,
+            qDepart=qDepart,
+            qCityArr=qCityArr,
+            qCityDep=qCityDep,
+            qDate=qDate,
+        )
 
     # Same field names as public search: qArrive, qDepart, qCity, qDate
     qArrive = request.form.get("qArrive", "").strip()
     qDepart = request.form.get("qDepart", "").strip()
-    qCity   = request.form.get("qCity",   "").strip()
+    qCityArr   = request.form.get("qCityArr",   "").strip()
+    qCityDep = request.form.get("qCityDep", "").strip()
     qDate   = request.form.get("qDate",   "").strip()
 
     # introduce wild cards so if it appears, it's accepted (same as public)
     patternArrive = f"%{qArrive.lower()}%" if qArrive else ""
     patternDepart = f"%{qDepart.lower()}%" if qDepart else ""
-    patternCity   = f"%{qCity.lower()}%"   if qCity   else ""
-    patternDate   = f"%{qDate}%"           if qDate   else ""
+    patternCityArr   = f"%{qCityArr.lower()}%"   if qCityArr   else ""
+    patternCityDep = f"%{qCityDep.lower()}%"   if qCityDep   else ""
+    patternDate   = f"%{qDate}%"      if qDate   else ""
 
     flights = []
 
-    if not (qArrive or qDepart or qCity or qDate):
+    #updated
+    if not (qArrive or qDepart or qCityArr or qCityDep or qDate):
+        flash(qCityDep)
         flash("Please enter at least one search field.")
         return redirect(url_for("customer.search_flights"))
 
@@ -99,31 +116,47 @@ def search_flights():
         # SQL copied from public_search_upcoming: upcoming flights filtered by
         # arrival/departure airport, city, and date. [file:281]
         sql = """
-                    SELECT
-                    f.airline_name,
-                    f.flight_num,
-                    dep.airport_name   AS departure_airport_name,
-                    f.departure_airport,
-                    f.departure_time,
-                    arr.airport_name   AS arrival_airport_name,
-                    f.arrival_airport,
-                    f.arrival_time,
-                    f.price,
-                    f.status,
-                    f.airplane_id
-                        FROM flight AS f
-                        JOIN airport AS dep
-                        ON f.departure_airport = dep.airport_name
-                        JOIN airport AS arr
-                        ON f.arrival_airport = arr.airport_name
-                        WHERE f.status = 'upcoming'
-                        AND ( %s = '' OR LOWER(f.arrival_airport)   LIKE %s )
-                        AND ( %s = '' OR LOWER(f.departure_airport) LIKE %s )
-                        AND ( %s = '' OR LOWER(dep.airport_city)    LIKE %s  
-                            OR LOWER(arr.airport_city)    LIKE %s )
-                        AND ( %s = '' OR LOWER(f.arrival_time)      LIKE %s )
-                        AND ( %s = '' OR LOWER(f.departure_time)    LIKE %s )
-                        ORDER BY f.departure_time;
+                    
+            SELECT
+                f.airline_name,
+                f.flight_num,
+                dep.airport_name AS departure_airport_name,
+                f.departure_airport,
+                f.departure_time,
+                arr.airport_name AS arrival_airport_name,
+                f.arrival_airport,
+                f.arrival_time,
+                f.price,
+                f.status,
+                f.airplane_id
+            FROM flight AS f
+            JOIN airport AS dep
+            ON f.departure_airport = dep.airport_name
+            JOIN city AS dep_city
+            ON dep.airport_city = dep_city.city_name
+            JOIN airport AS arr
+            ON f.arrival_airport = arr.airport_name
+            JOIN city AS arr_city
+            ON arr.airport_city = arr_city.city_name
+            WHERE f.status = 'upcoming'
+
+            -- Airport filter
+            --patternArrive, patternArrive, patternDepart, patternDepart, 
+            AND (%s = '' OR LOWER(f.arrival_airport)   LIKE %s)
+            AND (%s = '' OR LOWER(f.departure_airport) LIKE %s)
+
+            
+            -- City filter: match ANY airport in that city for either leg
+            -- patternCityArr, patternCityArr, patternCityDep, patternCityDep,
+            AND (%s = '' OR LOWER(arr_city.city_name) LIKE %s)
+            AND( %s = '' OR LOWER(dep_city.city_name) LIKE %s )
+
+            -- Time filter
+            -- patternDate, patternDate, patternDate, patternDate
+            AND (%s = '' OR LOWER(f.arrival_time)      LIKE %s)
+            AND (%s = '' OR LOWER(f.departure_time)    LIKE %s)
+            ORDER BY f.departure_time;
+
 
             """
 
@@ -131,7 +164,7 @@ def search_flights():
             sql,
             (patternArrive, patternArrive, 
             patternDepart, patternDepart, 
-            patternCity, patternCity, patternCity,
+            patternCityArr, patternCityArr, patternCityDep, patternCityDep,
             patternDate, patternDate, 
             patternDate, patternDate),
         )
@@ -143,7 +176,8 @@ def search_flights():
             results=flights,
             qArrive=qArrive,
             qDepart=qDepart,
-            qCity=qCity,
+            qCityArr=qCityArr,
+            qCityDep = qCityDep,
             qDate=qDate,
         )
 

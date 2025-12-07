@@ -1,0 +1,8 @@
+# new table city
+CREATE TABLE `city` (
+`city_name` varchar(50) NOT NULL,
+PRIMARY KEY(`city_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+# add constraint of airport
+ALTER TABLE `airport`
+ADD CONSTRAINT FOREIGN KEY (`airport_city`) REFERENCES `city`(`city_name`)

@@ -3,6 +3,15 @@
 <!-- will fill in block results from customer/search.html -->
 {% block dis_results %}
 <h2>Customer Search Results</h2>
+<p>
+    Filters:
+    {% if qArrive %} Arrival airport = "{{ qArrive }}"{% endif %}
+    {% if qDepart %}{% if qArrive %};{% endif %} Departure Airport = "{{ qDepart }}"{% endif %}
+    <!-- filter copied from public -->
+    {% if qCityArr %}{% if qArrive%};{% endif %} Arrival City = "{{ qCityArr }}"{% endif %}
+    {% if qCityDep %}{% if qDep%};{% endif %} Departure City = "{{ qCityDep }}"{% endif %}
+    {% if qDate %}{% if qArrive or qDepart or qCity %};{% endif %} Date = "{{ qDate }}"{% endif %}
+</p>
 {% if results %}
   <table>
     <thead>

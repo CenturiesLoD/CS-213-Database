@@ -4,17 +4,19 @@
 
 <form method="GET" action="{{ url_for('public.public_search_upcoming') }}">
   <label>Airport code (arrival):</label>
-  <input type="text" name="qArrive" value="{{ qArrive or '' }}" placeholder="e.g. JFK">
+  <input type="text" name="qArrive" value="{{ qArrive|default('') }}" placeholder="e.g. JFK">
 
   <label>Airport code (departure):</label>
-  <input type="text" name="qDepart" value="{{ qDepart or '' }}" placeholder="e.g. LAX">
+  <input type="text" name="qDepart" value="{{ qDepart|default('') }}" placeholder="e.g. LAX">
 
-  <label>City:</label>
-  <input type="text" name="qCity" value="{{ qCity or '' }}" placeholder="e.g. New York">
+  <label>City (arrival):</label>
+  <input type="text" name="qCityArr" value="{{ qCityArr|default('') }}" placeholder="e.g. New York">
+
+  <label>City (departure):</label>
+  <input type="text" name="qCityDep" value="{{ qCityDep|default('') }}" placeholder="e.g. New York">
 
   <label>Date:</label>
-  <input type="date" name="qDate" value="{{ qDate or '' }}" placeholder="e.g. 2024-06-01">
-
+  <input type="date" name="qDate" value="{{ qDate|default('') }}">
   <button type="submit">Search</button>
 </form>
 
@@ -24,11 +26,10 @@
   <p>
     Filters:
     {% if qArrive %} Arrival airport = "{{ qArrive }}"{% endif %}
-    {% if qDepart %}{% if qArrive %};{% endif %} Departure airport = "{{ qDepart }}"{% endif %}
-    {% if qCity %}{% if qArrive or qDepart %};{% endif %} City = "{{ qCity }}"{% endif %}
+    {% if qDepart %}{% if qArrive %};{% endif %} Departure Airport = "{{ qDepart }}"{% endif %}
+    {% if qCityArr %}{% if qArrive%};{% endif %} Arrival City = "{{ qCityArr }}"{% endif %}
+    {% if qCityDep %}{% if qDepart %};{% endif %} Departure City = "{{ qCityDep }}"{% endif %}
     {% if qDate %}{% if qArrive or qDepart or qCity %};{% endif %} Date = "{{ qDate }}"{% endif %}
-  </p>
-
   <table>
     <thead>
       <tr>
@@ -55,7 +56,7 @@
       {% endfor %}
     </tbody>
   </table>
-{% elif qArrive or qDepart or qCity or qDate %}
+{% elif qArrive or qDepart or qCityArr or qCityDep or qDate %}
   <p>No upcoming flights found for your search.</p>
 {% endif %}
 

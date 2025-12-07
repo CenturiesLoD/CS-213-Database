@@ -6,16 +6,19 @@
 
 <form method="POST" action="{{ url_for('customer.search_flights') }}">
   <label>Airport code (arrival):</label>
-  <input type="text" name="qArrive" placeholder="e.g. JFK">
+  <input type="text" name="qArrive" value="{{ qArrive|default('') }}" placeholder="e.g. JFK">
 
   <label>Airport code (departure):</label>
-  <input type="text" name="qDepart" placeholder="e.g. LAX">
+  <input type="text" name="qDepart" value="{{ qDepart|default('') }}" placeholder="e.g. LAX">
 
-  <label>City:</label>
-  <input type="text" name="qCity" placeholder="e.g. New York">
+  <label>City (arrival):</label>
+  <input type="text" name="qCityArr" value="{{ qCityArr|default('') }}" placeholder="e.g. New York">
+
+  <label>City (departure):</label>
+  <input type="text" name="qCityDep" value="{{ qCityDep|default('') }}" placeholder="e.g. New York">
 
   <label>Date:</label>
-  <input type="date" name="qDate">
+  <input type="date" name="qDate" value="{{ qDate|default('') }}">
 
   <button type="submit">Search</button>
 </form>
