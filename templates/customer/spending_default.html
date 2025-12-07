@@ -25,6 +25,9 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
+    // should work at runtime
+    // ignore the error since its reading it as js not jinja
+    // get better jinja extension and set the interpreter to Jinja HTML to remove warning
   const spendingLabels = {{ labels|tojson|safe }};
   const spendingValues = {{ values|tojson|safe }};
 
