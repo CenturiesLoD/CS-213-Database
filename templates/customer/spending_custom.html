@@ -1,5 +1,119 @@
 {% extends "base.html" %}
+{% block title %}Custom Spending{% endblock %}
+
 {% block content %}
-<h2>Spending Report (Custom Range)</h2>
-<p>placeholder</p>
+<h2>Custom Spending</h2>
+
+<div style="margin-bottom: 1em;">
+  <span style="display: inline-block; margin-right: 1.5em;">
+    <a href="{{ url_for('customer.spending_default') }}">
+      Default spending view
+    </a>
+  </span>
+  <span style="display: inline-block;">
+    <a href="{{ url_for('customer.dashboard') }}">
+      Back to dashboard
+    </a>
+  </span>
+</div>
+
+
+          {# scroll donw menu #}
+
+<form method="post" class="mb-3">
+  <div class="row g-2">
+    <div class="col-md-6">
+      <label class="form-label">Start month</label>
+      <div class="d-flex gap-2">
+        <select name="qStartYear" class="form-select">
+          <option value="">Year</option>
+          {% for y in range(2000, 2031) %}
+            <option value="{{ y }}"
+              {% if qStartYear == y|string %}selected{% endif %}>{{ y }}</option>
+          {% endfor %}
+        </select>
+        <select name="qStartMonth" class="form-select">
+          <option value="">Month</option>
+          {% for m, name in [
+                ('01', 'Jan'), ('02', 'Feb'), ('03', 'Mar'),
+                ('04', 'Apr'), ('05', 'May'), ('06', 'Jun'),
+                ('07', 'Jul'), ('08', 'Aug'), ('09', 'Sep'),
+                ('10', 'Oct'), ('11', 'Nov'), ('12', 'Dec')
+          ] %}
+            <option value="{{ m }}"
+              {% if qStartMonth == m %}selected{% endif %}>{{ name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+          {# scroll donw menu #}
+
+    <div class="col-md-6">
+      <label class="form-label">End month</label>
+      <div class="d-flex gap-2">
+        <select name="qEndYear" class="form-select">
+          <option value="">Year</option>
+          {% for y in range(2000, 2031) %}
+            <option value="{{ y }}"
+              {% if qEndYear == y|string %}selected{% endif %}>{{ y }}</option>
+          {% endfor %}
+        </select>
+        <select name="qEndMonth" class="form-select">
+          <option value="">Month</option>
+          {% for m, name in [
+                ('01', 'Jan'), ('02', 'Feb'), ('03', 'Mar'),
+                ('04', 'Apr'), ('05', 'May'), ('06', 'Jun'),
+                ('07', 'Jul'), ('08', 'Aug'), ('09', 'Sep'),
+                ('10', 'Oct'), ('11', 'Nov'), ('12', 'Dec')
+          ] %}
+            <option value="{{ m }}"
+              {% if qEndMonth == m %}selected{% endif %}>{{ name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-3">
+    <button type="submit" class="btn btn-primary">
+      Show spending
+    </button>
+  </div>
+</form>
+
+{% if qTotalSpending is not none %}
+  <p class="mt-3">
+    Total spending from
+    <strong>{{ qStartYear }}-{{ qStartMonth }}</strong> to
+    <strong>{{ qEndYear }}-{{ qEndMonth }}</strong>:
+    <strong>{{ qTotalSpending }}</strong>
+  </p>
+
+  <h3>Spending by month</h3>
+  <canvas id="spendingChart" width="400" height="200"></canvas>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const spendingLabels = {{ (labels | default([])) | tojson | safe }};
+    const spendingValues = {{ (values | default([])) | tojson | safe }};
+
+    const ctx = document.getElementById('spendingChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: spendingLabels,
+        datasets: [{
+          label: 'Monthly spending',
+          data: spendingValues,
+          backgroundColor: 'rgba(75, 192, 192, 0.5)',
+          borderColor: 'rgba(75, 192, 192, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  </script>
+{% endif %}
 {% endblock %}

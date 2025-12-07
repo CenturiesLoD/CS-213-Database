@@ -455,6 +455,103 @@ def spending_default():
     )
 
 
-@customer_bp.route("/spending/custom")
+@customer_bp.route("/spending/custom", methods=["GET", "POST"])
 def spending_custom():
-    return render_template("customer/spending_custom.html")
+    if session.get("user_type") != "customer":
+        flash("You must log in as a customer to view spending.")
+        return redirect(url_for("auth.login"))
+
+    customer_email = session.get("email")
+
+    # q* values come from dropdowns
+    qStartYear = ""
+    qStartMonth = ""
+    qEndYear = ""
+    qEndMonth = ""
+
+    qTotalSpending = None
+    labels = []
+    values = []
+
+    if request.method == "POST":
+        qStartYear = request.form.get("qStartYear", "").strip()
+        qStartMonth = request.form.get("qStartMonth", "").strip()
+        qEndYear = request.form.get("qEndYear", "").strip()
+        qEndMonth = request.form.get("qEndMonth", "").strip()
+
+        # Basic validation
+        if not (qStartYear and qStartMonth and qEndYear and qEndMonth):
+            flash("Please choose both start and end months.")
+            return redirect(url_for("customer.spending_custom"))
+
+        # Build YYYY-MM strings from the dropdowns
+        qStart = f"{qStartYear}-{qStartMonth.zfill(2)}"
+        qEnd = f"{qEndYear}-{qEndMonth.zfill(2)}"
+
+        # Ensure start <= end (lexicographic works for YYYY-MM)
+        if qStart > qEnd:
+            flash("Start month must be before or equal to end month.")
+            return redirect(url_for("customer.spending_custom"))
+
+        conn = get_db_connection()
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        try:
+            # 1) Total spending from first day of start month through
+            #    last day of end month.
+            sql_total = """
+                SELECT COALESCE(SUM(f.price), 0) AS total_spending
+                FROM purchases p
+                JOIN ticket t
+                  ON p.ticket_id = t.ticket_id
+                JOIN flight f
+                  ON t.airline_name = f.airline_name
+                 AND t.flight_num   = f.flight_num
+                WHERE p.customer_email = %s
+                  AND p.purchase_date BETWEEN
+                        DATE(CONCAT(%s, '-01'))
+                    AND LAST_DAY(DATE(CONCAT(%s, '-01')))
+            """
+            cursor.execute(sql_total, (customer_email, qStart, qEnd))
+            row = cursor.fetchone()
+            qTotalSpending = row["total_spending"]
+
+            # 2) Month-by-month spending in that full-month range
+            sql_months = """
+                SELECT
+                    DATE_FORMAT(p.purchase_date, '%%Y-%%m') AS yr_mth,
+                    SUM(f.price) AS month_total
+                FROM purchases p
+                JOIN ticket t
+                  ON p.ticket_id = t.ticket_id
+                JOIN flight f
+                  ON t.airline_name = f.airline_name
+                 AND t.flight_num   = f.flight_num
+                WHERE p.customer_email = %s
+                  AND p.purchase_date BETWEEN
+                        DATE(CONCAT(%s, '-01'))
+                    AND LAST_DAY(DATE(CONCAT(%s, '-01')))
+                GROUP BY DATE_FORMAT(p.purchase_date, '%%Y-%%m')
+                ORDER BY yr_mth
+            """
+            cursor.execute(sql_months, (customer_email, qStart, qEnd))
+            rows = cursor.fetchall()
+
+            labels = [r["yr_mth"] for r in rows]
+            values = [float(r["month_total"]) for r in rows]
+        except Exception as e:
+            flash(f"Failed to load custom spending data: {e}")
+            return redirect(url_for("customer.dashboard"))
+        finally:
+            cursor.close()
+            conn.close()
+
+    return render_template(
+        "customer/spending_custom.html",
+        qStartYear=qStartYear,
+        qStartMonth=qStartMonth,
+        qEndYear=qEndYear,
+        qEndMonth=qEndMonth,
+        qTotalSpending=qTotalSpending,
+        labels=labels,
+        values=values,
+    )

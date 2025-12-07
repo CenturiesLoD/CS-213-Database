@@ -8,15 +8,19 @@
   Total spending in the last 12 months:
   <strong>{{ total_spending_12m }}</strong>
 </p>
-
-<div class="mb-3">
-  <a href="{{ url_for('customer.dashboard') }}" class="btn btn-secondary">
-    Back to dashboard
-  </a>
-  <a href="{{ url_for('customer.spending_custom') }}" class="btn btn-primary">
-    Custom spending view
-  </a>
+<div style="margin-bottom: 1em;">
+  <span style="display:inline-block; margin-right: 1.5em;">
+    <a href="{{ url_for('customer.spending_default') }}">
+      Default spending view
+    </a>
+  </span>
+  <span style="display:inline-block;">
+    <a href="{{ url_for('customer.dashboard') }}">
+      Back to dashboard
+    </a>
+  </span>
 </div>
+
 
 <h3>Spending by month (last 6 months)</h3>
 <canvas id="spendingChart" width="400" height="200"></canvas>
