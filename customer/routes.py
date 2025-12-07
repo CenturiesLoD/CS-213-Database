@@ -141,7 +141,7 @@ def search_flights():
             WHERE f.status = 'upcoming'
 
             -- Airport filter
-            --patternArrive, patternArrive, patternDepart, patternDepart, 
+            -- patternArrive, patternArrive, patternDepart, patternDepart, 
             AND (%s = '' OR LOWER(f.arrival_airport)   LIKE %s)
             AND (%s = '' OR LOWER(f.departure_airport) LIKE %s)
 
