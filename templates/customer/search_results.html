@@ -12,47 +12,58 @@
     {% if qCityDep %}{% if qDep%};{% endif %} Departure City = "{{ qCityDep }}"{% endif %}
     {% if qDate %}{% if qArrive or qDepart or qCity %};{% endif %} Date = "{{ qDate }}"{% endif %}
 </p>
-{% if results %}
-  <table>
-    <thead>
-      <tr>
-        <th>Airline</th>
-        <th>Flight #</th>
-        <th>Departure</th>
-        <th>Departure Time</th>
-        <th>Arrival</th>
-        <th>Arrival Time</th>
-        <th>Price</th>
-        <th>Status</th>
-        <th>Buy</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for f in results %}
-      <tr>
-        <td>{{ f.airline_name }}</td>
-        <td>{{ f.flight_num }}</td>
-        <td>{{ f.departure_airport }}</td>
-        <td>{{ f.departure_time }}</td>
-        <td>{{ f.arrival_airport }}</td>
-        <td>{{ f.arrival_time }}</td>
-        <td>{{ f.price }}$</td>
-        <td>{{ f.status }}</td>
-        <td>
-            <!-- USE POST FOR SECURITY REASONS -->
-          <form method="POST" action="{{ url_for('customer.purchase') }}">
-            <input type="hidden" name="airline_name" value="{{ f.airline_name }}">
-            <input type="hidden" name="flight_num" value="{{ f.flight_num }}">
-            <input type="hidden" name="airplane_id" value="{{ f.airplane_id }}">
-            <button type="submit">Buy</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-{% else %}
-  <p>No upcoming flights found.</p>
-{% endif %}
+  {% if results and results|length > 0 %}
+    <div style="border: 1px solid #000; padding: 0.5em; margin-top: 0.75em;">
+      <p>
+        Filters:
+        {% if qArrive %} Arrival airport = "{{ qArrive }}"{% endif %}
+        {% if qDepart %}{% if qArrive %};{% endif %} Departure airport = "{{ qDepart }}"{% endif %}
+        {% if qCityArr %}{% if qArrive or qDepart %};{% endif %} Arrival city = "{{ qCityArr }}"{% endif %}
+        {% if qCityDep %}{% if qArrive or qDepart or qCityArr %};{% endif %} Departure city = "{{ qCityDep }}"{% endif %}
+        {% if qDate %}{% if qArrive or qDepart or qCityArr or qCityDep %};{% endif %} Date = "{{ qDate }}"{% endif %}
+      </p>
+
+      <table border="1" cellpadding="4" cellspacing="0">
+        <thead>
+          <tr>
+            <th>Airline</th>
+            <th>Flight #</th>
+            <th>Departure</th>
+            <th>Departure time</th>
+            <th>Arrival</th>
+            <th>Arrival time</th>
+            <th>Price</th>
+            <th>Status</th>
+            <th>Buy</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for f in results %}
+          <tr>
+            <td>{{ f.airline_name }}</td>
+            <td>{{ f.flight_num }}</td>
+            <td>{{ f.departure_airport }}</td>
+            <td>{{ f.departure_time }}</td>
+            <td>{{ f.arrival_airport }}</td>
+            <td>{{ f.arrival_time }}</td>
+            <td>{{ f.price }}$</td>
+            <td>{{ f.status }}</td>
+            <td>
+              <form method="post" action="{{ url_for('customer.purchase') }}">
+                <input type="hidden" name="airline_name" value="{{ f.airline_name }}">
+                <input type="hidden" name="flight_num" value="{{ f.flight_num }}">
+                <input type="hidden" name="airplane_id" value="{{ f.airplane_id }}">
+                <button type="submit">Buy</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>No upcoming flights found.</p>
+  {% endif %}
+
 
 {% endblock %}
