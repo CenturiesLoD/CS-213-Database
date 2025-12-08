@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template, session, redirect, request, url_for
+from flask import Blueprint, render_template, session, redirect, request, url_for, flash
 from db import get_db_connection
+import pymysql
 
 staff_bp = Blueprint("staff", __name__)
 
@@ -186,6 +187,76 @@ def passenger_list(airline, flight_num):
                            flight=flight,
                            passengers=passengers)
 
-@staff_bp.route("/customer_history")
+#again can be done by all staff
+@staff_bp.route("/customer_history", methods=["GET", "POST"])
 def customer_history():
-    return render_template("staff/customer_history.html", results=None)
+    # must be logged in as staff
+    if "user_type" not in session or session["user_type"] != "staff":
+        return redirect("/login")
+
+    airline = session.get("airline_name")
+    if not airline:
+        return "No airline found for this staff member", 400
+
+    results = []
+    customer_email = ""
+    error_msg = ""
+
+    if request.method == "POST":
+        customer_email = request.form.get("customer_email", "").strip()
+
+        if not customer_email:
+            error_msg = "Please enter a customer email."
+        else:
+            conn = get_db_connection()
+            cursor = conn.cursor(pymysql.cursors.DictCursor)
+
+            try:
+                # Check that the customer exists
+                sql_check_customer = """
+                    SELECT email
+                    FROM customer
+                    WHERE email = %s
+                """
+                cursor.execute(sql_check_customer, (customer_email,))
+                row = cursor.fetchone()
+
+                if not row:
+                    error_msg = "No such customer email was found."
+                else:
+                    # All flights this customer has taken on this airline
+                    sql_history = """
+                        SELECT
+                            f.airline_name,
+                            f.flight_num,
+                            f.departure_airport,
+                            f.departure_time,
+                            f.arrival_airport,
+                            f.arrival_time,
+                            f.status,
+                            p.purchase_date,
+                            t.ticket_id
+                        FROM purchases p
+                        JOIN ticket t
+                          ON p.ticket_id = t.ticket_id
+                        JOIN flight f
+                          ON t.airline_name = f.airline_name
+                         AND t.flight_num = f.flight_num
+                        WHERE p.customer_email = %s
+                          AND f.airline_name = %s
+                        ORDER BY f.departure_time DESC
+                    """
+                    cursor.execute(sql_history, (customer_email, airline))
+                    results = cursor.fetchall()
+            finally:
+                cursor.close()
+                conn.close()
+
+    return render_template(
+        "staff/customer_history.html",
+        results=results,
+        customer_email=customer_email,
+        airline_name=airline,
+        error_msg=error_msg,
+    )
+
