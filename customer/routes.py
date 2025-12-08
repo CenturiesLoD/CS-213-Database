@@ -307,6 +307,7 @@ def purchase():
             WHERE f.airline_name = %s
               AND f.flight_num   = %s
               AND f.airplane_id  = %s
+              -- FOR UPDATE just locks the DB
             FOR UPDATE
         """
         cursor.execute(sql_flight, (airline_name, flight_num, airplane_id))

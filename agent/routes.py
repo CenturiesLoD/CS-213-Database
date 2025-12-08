@@ -344,7 +344,7 @@ def purchase():
                 failed_airline_name=airline_name,
                 failed_flight_num=flight_num,
                 failed_customer_email=customer_email,
-                error_msg="Customer does for one of your inputted emails. Please check the email and try again.",
+                error_msg="Customer email is wrong for one of your inputted emails. Please check the email and try again.",
             ))
 
         
@@ -512,10 +512,70 @@ def commission():
 
 @agent_bp.route("/analytics/top_customers")
 def top_customers():
+    """
+    Show top 5 customers for this agent:
+    - By number of tickets (last 6 months)
+    - By total commission (last year, 10% of price)
+    """
     if session.get("user_type") != "agent":
         flash("You must log in as a booking agent to view analytics.")
         return redirect(url_for("auth.login"))
-    return render_template("agent/analytics_top_customers.html")
+
+    agent_email = session.get("email")
+
+    top_by_tickets = []
+    top_by_commission = []
+
+    conn = get_db_connection()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    try:
+        # 1) Top 5 by ticket count in last 6 months
+        sql_tickets = """
+            SELECT
+              p.customer_email,
+              COUNT(*) AS ticket_count
+            FROM purchases p
+            WHERE p.booking_agent_email = %s
+              AND p.purchase_date >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+            GROUP BY p.customer_email
+            ORDER BY ticket_count DESC
+            LIMIT 5
+        """
+        cursor.execute(sql_tickets, (agent_email,))
+        top_by_tickets = cursor.fetchall()
+
+        # 2) Top 5 by total commission in last year (10% of price)
+        sql_commission = """
+            SELECT
+              p.customer_email,
+              SUM(f.price * 0.10) AS total_commission
+            FROM purchases p
+            JOIN ticket t
+              ON p.ticket_id = t.ticket_id
+            JOIN flight f
+              ON t.airline_name = f.airline_name
+             AND t.flight_num   = f.flight_num
+            WHERE p.booking_agent_email = %s
+              AND p.purchase_date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+            GROUP BY p.customer_email
+            ORDER BY total_commission DESC
+            LIMIT 5
+        """
+        cursor.execute(sql_commission, (agent_email,))
+        top_by_commission = cursor.fetchall()
+
+    except Exception as e:
+        flash(f"Failed to load top customers data: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+
+    return render_template(
+        "agent/analytics_top_customers.html",
+        top_by_tickets=top_by_tickets,
+        top_by_commission=top_by_commission,
+    )
+
 
 
 
