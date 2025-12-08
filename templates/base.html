@@ -123,7 +123,7 @@
                 <a href="/">Home</a>
 
                 <!-- Global search bar: sends query to public.search -->
-                <form action="{{ url_for('public.public_search_upcoming') }}" method="GET" class="d-inline-block me-2">
+                <form action="{% if session.get('user_type') == 'staff' %}{{ url_for('staff.search') }}{% else %}{{ url_for('public.public_search_upcoming') }}{% endif %}" method="GET" class="d-inline-block me-2">
                     <button type="submit" class="btn btn-search btn-sm">
                         {% if session.get('user_type') == 'customer' %}
                             Search Upcoming Flights (Customer)

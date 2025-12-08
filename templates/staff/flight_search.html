@@ -42,6 +42,7 @@
       <thead>
         <tr>
           <th>Flight #</th>
+          <th>Airline</th>
           <th>Departure Airport</th>
           <th>Departure Time</th>
           <th>Arrival Airport</th>
@@ -49,12 +50,14 @@
           <th>Status</th>
           <th>From City</th>
           <th>To City</th>
+          <th>Passengers</th>
         </tr>
       </thead>
       <tbody>
         {% for f in results %}
         <tr>
           <td>{{ f.flight_num }}</td>
+          <td>{{ f.airline_name }}</td>
           <td>{{ f.departure_airport }}</td>
           <td>{{ f.departure_time }}</td>
           <td>{{ f.arrival_airport }}</td>
@@ -62,6 +65,11 @@
           <td>{{ f.status }}</td>
           <td>{{ f.dep_city }}</td>
           <td>{{ f.arr_city }}</td>
+          <td>
+            <a href="{{ url_for('staff.passenger_list', airline=f.airline_name, flight_num=f.flight_num) }}">
+              View Passengers
+            </a>
+          </td>
         </tr>
         {% endfor %}
       </tbody>

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, session, redirect, request
+from flask import Blueprint, render_template, session, redirect, request, url_for
 from db import get_db_connection
 
 staff_bp = Blueprint("staff", __name__)
@@ -36,7 +36,7 @@ def dashboard():
     cursor.close()
     conn.close()
 
-    return render_template("staff/dashboard.html", flights=flights)
+    return render_template("staff/dashboard.html", flights=flights, airline_name=airline)
 @staff_bp.route("/next30")
 def next30():
     # must be logged in as staff
@@ -52,6 +52,7 @@ def next30():
 
     sql = """
         SELECT 
+            airline_name,
             flight_num,
             departure_airport,
             departure_time,
@@ -61,7 +62,7 @@ def next30():
             airplane_id
         FROM flight
         WHERE airline_name = %s
-          AND departure_time BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 30 DAY)
+        AND departure_time BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 30 DAY)
         ORDER BY departure_time;
     """
     cursor.execute(sql, (airline,))
@@ -70,7 +71,7 @@ def next30():
     cursor.close()
     conn.close()
 
-    return render_template("staff/flights_next30.html", flights=flights)
+    return render_template("staff/flights_next30.html", flights=flights, airline_name=airline)
 
 @staff_bp.route("/search", methods=["GET", "POST"])
 def search():
@@ -162,6 +163,11 @@ def passenger_list(airline, flight_num):
     """, (airline, flight_num))
     flight = cursor.fetchone()
 
+    if not flight:
+        cursor.close()
+        conn.close()
+        return f"No such flight {airline} {flight_num}", 404
+
     # fetch passengers
     cursor.execute("""
         SELECT p.customer_email, c.name
@@ -182,4 +188,4 @@ def passenger_list(airline, flight_num):
 
 @staff_bp.route("/customer_history")
 def customer_history():
-    return render_template("staff/customer_history.html")
+    return render_template("staff/customer_history.html", results=None)
