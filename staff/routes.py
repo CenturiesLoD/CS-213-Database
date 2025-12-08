@@ -10,14 +10,18 @@ def dashboard():
     if "user_type" not in session or session["user_type"] != "staff":
         return redirect("/login")
 
-    # airline this staff works for
     airline = session.get("airline_name")
+    raw_role = session.get("staff_role", "")
+    role = (raw_role or "").strip().lower()
+    is_admin = role in ("admin", "both")
+    is_operator = role in ("operator", "both")
 
     conn = get_db_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
 
     sql = """
         SELECT 
+            airline_name,
             flight_num,
             departure_airport,
             departure_time,
@@ -30,14 +34,19 @@ def dashboard():
           AND departure_time BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 30 DAY)
         ORDER BY departure_time;
     """
-
     cursor.execute(sql, (airline,))
     flights = cursor.fetchall()
 
     cursor.close()
     conn.close()
 
-    return render_template("staff/dashboard.html", flights=flights, airline_name=airline)
+    return render_template(
+        "staff/dashboard.html",
+        flights=flights,
+        airline_name=airline,
+        is_admin=is_admin,
+        is_operator=is_operator
+    )
 @staff_bp.route("/next30")
 def next30():
     # must be logged in as staff
@@ -259,4 +268,3 @@ def customer_history():
         airline_name=airline,
         error_msg=error_msg,
     )
-

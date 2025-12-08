@@ -9,6 +9,23 @@
     <p>Airline: <strong>{{ airline_name }}</strong></p>
   {% endif %}
 
+  {% if is_admin %}
+    <h3>Admin Controls</h3>
+    <ul>
+      <li><a href="{{ url_for('admin_staff.add_airport') }}">Add Airport</a></li>
+      <li><a href="{{ url_for('admin_staff.add_airplane') }}">Add Airplane</a></li>
+      <li><a href="{{ url_for('admin_staff.create_flight') }}">Create Flight</a></li>
+      <li><a href="{{ url_for('admin_staff.authorize_agent') }}">Authorize Booking Agent</a></li>
+    </ul>
+  {% endif %}
+
+  {% if is_operator %}
+    <h3>Operator Controls</h3>
+    <ul>
+      <li><a href="{{ url_for('staff_operator.update_status') }}">Update Flight Status</a></li>
+    </ul>
+  {% endif %}
+
   <h3>Upcoming Flights (next 30 days)</h3>
 
   {% if flights and flights|length > 0 %}

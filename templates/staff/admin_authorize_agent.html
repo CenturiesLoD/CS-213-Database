@@ -1,4 +1,29 @@
 {% extends "base.html" %}
 {% block content %}
 <h2>Authorize Booking Agent</h2>
+
+{% if airline_name %}
+  <p>Airline: <strong>{{ airline_name }}</strong></p>
+{% endif %}
+
+<form method="post" action="{{ url_for('admin_staff.authorize_agent') }}">
+  <div class="form-group">
+    <label>Agent Email</label>
+    <input type="email" name="agent_email" class="form-control" required>
+  </div>
+  <button type="submit" class="btn btn-primary">Authorize</button>
+</form>
+
+<hr>
+
+<h3>Currently Authorized Agents</h3>
+{% if authorized_agents %}
+  <ul>
+    {% for row in authorized_agents %}
+      <li>{{ row.agent_email }}</li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>No agents authorized yet.</p>
+{% endif %}
 {% endblock %}

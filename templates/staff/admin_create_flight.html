@@ -1,4 +1,68 @@
 {% extends "base.html" %}
 {% block content %}
 <h2>Create Flight</h2>
+
+{% if airline_name %}
+  <p>Airline: <strong>{{ airline_name }}</strong></p>
+{% endif %}
+
+<form method="post" action="{{ url_for('admin_staff.create_flight') }}">
+  <div class="form-group">
+    <label>Flight Number</label>
+    <input type="number" name="flight_num" class="form-control" required>
+  </div>
+
+  <div class="form-group">
+    <label>Departure Airport</label>
+    <select name="departure_airport" class="form-control" required>
+      {% for code in airports %}
+        <option value="{{ code }}">{{ code }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Arrival Airport</label>
+    <select name="arrival_airport" class="form-control" required>
+      {% for code in airports %}
+        <option value="{{ code }}">{{ code }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Departure Time</label>
+    <input type="datetime-local" name="departure_time" class="form-control" required>
+  </div>
+
+  <div class="form-group">
+    <label>Arrival Time</label>
+    <input type="datetime-local" name="arrival_time" class="form-control" required>
+  </div>
+
+  <div class="form-group">
+    <label>Price</label>
+    <input type="number" step="0.01" name="price" class="form-control" required>
+  </div>
+
+  <div class="form-group">
+    <label>Airplane ID</label>
+    <select name="airplane_id" class="form-control" required>
+      {% for pid in airplane_ids %}
+        <option value="{{ pid }}">{{ pid }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Status</label>
+    <select name="status" class="form-control">
+      <option value="upcoming">upcoming</option>
+      <option value="in-progress">in-progress</option>
+      <option value="delayed">delayed</option>
+    </select>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Create Flight</button>
+</form>
 {% endblock %}

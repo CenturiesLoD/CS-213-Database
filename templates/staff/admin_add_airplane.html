@@ -1,4 +1,22 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Add Airport</h2>
+<h2>Add Airplane</h2>
+
+{% if airline_name %}
+  <p>Airline: <strong>{{ airline_name }}</strong></p>
+{% endif %}
+
+<form method="post" action="{{ url_for('admin_staff.add_airplane') }}">
+  <div class="form-group">
+    <label>Airplane ID</label>
+    <input type="number" name="airplane_id" class="form-control" required>
+  </div>
+
+  <div class="form-group">
+    <label>Seat Capacity</label>
+    <input type="number" name="seat_capacity" class="form-control" required>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Add Airplane</button>
+</form>
 {% endblock %}
