@@ -4,39 +4,40 @@
 <h2>My Purchased Flights</h2>
 
 {% if purchases and purchases|length > 0 %}
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>Purchase date</th>
-        <th>Airline</th>
-        <th>Flight #</th>
-        <th>Departure airport</th>
-        <th>Departure time</th>
-        <th>Arrival airport</th>
-        <th>Arrival time</th>
-        <th>Price</th>
-        <th>Status</th>
-        <!-- <th>Tickets</th> -->
-      </tr>
-    </thead>
-    <tbody>
-      {% for r in purchases %}
-      <tr>
-        <td>{{ r.purchase_date }}</td>
-        <td>{{ r.airline_name }}</td>
-        <td>{{ r.flight_num }}</td>
-        <td>{{ r.departure_airport }}</td>
-        <td>{{ r.departure_time }}</td>
-        <td>{{ r.arrival_airport }}</td>
-        <td>{{ r.arrival_time }}</td>
-        <td>{{ r.price }}</td>
-        <td>{{ r.status }}</td>
-        <!-- <td>{{ r.ticket_amount }}</td> -->
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div style="border: 1px solid #000; padding: 0.5em; margin-top: 0.75em;">
+    <table border="1" cellpadding="4" cellspacing="0">
+      <thead>
+        <tr>
+          <th>Purchase date</th>
+          <th>Airline</th>
+          <th>Flight #</th>
+          <th>Departure airport</th>
+          <th>Departure time</th>
+          <th>Arrival airport</th>
+          <th>Arrival time</th>
+          <th>Price</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in purchases %}
+        <tr>
+          <td>{{ r.purchase_date }}</td>
+          <td>{{ r.airline_name }}</td>
+          <td>{{ r.flight_num }}</td>
+          <td>{{ r.departure_airport }}</td>
+          <td>{{ r.departure_time }}</td>
+          <td>{{ r.arrival_airport }}</td>
+          <td>{{ r.arrival_time }}</td>
+          <td>{{ r.price }}</td>
+          <td>{{ r.status }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 {% else %}
   <p>No purchases yet.</p>
 {% endif %}
+
 {% endblock %}

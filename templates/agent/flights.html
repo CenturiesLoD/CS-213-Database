@@ -1,4 +1,67 @@
 {% extends "base.html" %}
+{% block title %}Agent Flights{% endblock %}
+
 {% block content %}
-<h2>Flights Booked for Customers</h2>
+<h2>Flights Purchased for Customers</h2>
+
+<form method="get" class="mb-3">
+  <div>
+    <label>Start purchase date:</label>
+    <input type="date" name="qStartDate" value="{{ qStartDate|default('') }}">
+  </div>
+  <div>
+    <label>End purchase date:</label>
+    <input type="date" name="qEndDate" value="{{ qEndDate|default('') }}">
+  </div>
+  <div>
+    <label>Departure airport:</label>
+    <input type="text" name="qDepart" value="{{ qDepart|default('') }}">
+  </div>
+  <div>
+    <label>Arrival airport:</label>
+    <input type="text" name="qArrive" value="{{ qArrive|default('') }}">
+  </div>
+  <div style="margin-top: 0.5em;">
+    <button type="submit">Filter</button>
+  </div>
+</form>
+
+{% if flights and flights|length > 0 %}
+  <table border="1" cellpadding="4" cellspacing="0">
+    <thead>
+      <tr>
+        <th>Ticket ID</th>
+        <th>Purchase date</th>
+        <th>Customer email</th>
+        <th>Airline</th>
+        <th>Flight #</th>
+        <th>Departure airport</th>
+        <th>Departure time</th>
+        <th>Arrival airport</th>
+        <th>Arrival time</th>
+        <th>Price</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for f in flights %}
+      <tr>
+        <td>{{ f.ticket_id }}</td>
+        <td>{{ f.purchase_date }}</td>
+        <td>{{ f.customer_email }}</td>
+        <td>{{ f.airline_name }}</td>
+        <td>{{ f.flight_num }}</td>
+        <td>{{ f.departure_airport }}</td>
+        <td>{{ f.departure_time }}</td>
+        <td>{{ f.arrival_airport }}</td>
+        <td>{{ f.arrival_time }}</td>
+        <td>{{ f.price }}</td>
+        <td>{{ f.status }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>No flights found for the current filters.</p>
+{% endif %}
 {% endblock %}

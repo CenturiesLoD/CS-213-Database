@@ -2,23 +2,16 @@
 <!-- MODIFY THIS TO MODIFY CONFIRMATION PAGE -->
 {% block content %}
   {% if confirmed %}
-    <h2>Purchase Confirmed</h2>
-    <ul>
-      <li>Ticket #: {{ ticket_id }}</li>
-      <li>Airline: {{ airline_name }}</li>
-      <li>Flight #: {{ flight_num }}</li>
-      <!-- <li>Depart: {{ departure_airport }} at {{ departure_time }}</li>
-      <li>Arrive: {{ arrival_airport }} at {{ arrival_time }}</li> -->
-      <li>Price: {{ "%.2f"|format(price) }}$</li>
-      <li>Seats used/capacity: {{ sold }}/{{ seat_capacity }} ({{ seats_left }} left)</li>
-    </ul>
+  <div style="border: 1px solid #000; padding: 0.5em; margin-top: 0.75em;">
+    <h3>Purchase confirmed</h3>
+    <p>Ticket ID: {{ ticket_id }}</p>
+    <p>Airline: {{ airline_name }}, Flight #: {{ flight_num }}</p>
+    <p>Airplane ID: {{ airplane_id }}</p>
+    <p>Price: {{ price }}</p>
+    <p>Seats left on this flight: {{ seats_left }}</p>
+  </div>
+{% else %}
+  <p>No purchase to display.</p>
+{% endif %}
 
-    <div style="margin-top: 1rem;">
-      <a href="{{ url_for('customer.search_flights') }}">Search more flights</a>
-      <span style="margin: 0 0.5rem;">|</span>
-      <a href="{{ url_for('customer.dashboard') }}">Go to My Flights</a>
-    </div>
-  {% else %}
-    <h2>Purchse should be confirmed. Let us know of this bug</h2>
-  {% endif %}
 {% endblock %}

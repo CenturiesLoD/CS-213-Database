@@ -279,8 +279,8 @@ ALTER TABLE `customer`
 
 ALTER TABLE `booking_agent`
     MODIFY `password` varchar(255) NOT NULL;
-    ALTER TABLE `airline_staff`
-      MODIFY `password` varchar(255) NOT NULL;
+ALTER TABLE `airline_staff`
+    MODIFY `password` varchar(255) NOT NULL;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

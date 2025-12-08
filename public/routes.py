@@ -154,9 +154,14 @@ def _redirect_customer_from_public_search():
         #NOT NEEDED FOR NOWCAUSE YOU CANT BUY IN PROGRESS FLIGHTS
         #"public.public_search_in_progress",
     }:
+    
         # Preserve current query params (qArrive, qDepart, qCity, qDate, etc.)
         args = request.args.to_dict(flat=True)  # MultiDict -> dict for url_for [web:304]
         return redirect(url_for("customer.search_flights", **args))
+    elif session.get("user_type") == "agent" and request.endpoint in {
+        "public.public_search_upcoming",}:
+        args = request.args.to_dict(flat=True)  # MultiDict -> dict for url_for [web:304]
+        return redirect(url_for("agent.search", **args))
 
 @public_bp.route("/status")
 def public_status():

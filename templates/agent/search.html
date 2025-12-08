@@ -1,4 +1,78 @@
 {% extends "base.html" %}
+{% block title %}Agent Flight Search{% endblock %}
+
 {% block content %}
-<h2>Search Flights (Agent)</h2>
+<h2>Agent Flight Search</h2>
+
+<form method="get">
+  <div>
+    <label>Arrival airport:</label>
+    <input type="text" name="qArrive" value="{{ qArrive|default('') }}">
+  </div>
+  <div>
+    <label>Departure airport:</label>
+    <input type="text" name="qDepart" value="{{ qDepart|default('') }}">
+  </div>
+  <div>
+    <label>Arrival city:</label>
+    <input type="text" name="qCityArr" value="{{ qCityArr|default('') }}">
+  </div>
+  <div>
+    <label>Departure city:</label>
+    <input type="text" name="qCityDep" value="{{ qCityDep|default('') }}">
+  </div>
+  <div>
+    <label>Date (YYYY-MM-DD):</label>
+    <input type="text" name="qDate" value="{{ qDate|default('') }}">
+  </div>
+  <div style="margin-top: 0.5em;">
+    <button type="submit">Search</button>
+  </div>
+</form>
+
+{% if flights and flights|length > 0 %}
+  <div style="border: 1px solid #000; padding: 0.5em; margin-top: 0.75em;">
+    <table border="1" cellpadding="4" cellspacing="0">
+      <thead>
+        <tr>
+          <th>Airline</th>
+          <th>Flight #</th>
+          <th>Departure</th>
+          <th>Departure time</th>
+          <th>Arrival</th>
+          <th>Arrival time</th>
+          <th>Price</th>
+          <th>Status</th>
+          <th>Sell</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in flights %}
+        <tr>
+          <td>{{ f.airline_name }}</td>
+          <td>{{ f.flight_num }}</td>
+          <td>{{ f.departure_airport }}</td>
+          <td>{{ f.departure_time }}</td>
+          <td>{{ f.arrival_airport }}</td>
+          <td>{{ f.arrival_time }}</td>
+          <td>{{ f.price }}</td>
+          <td>{{ f.status }}</td>
+          <td>
+            <!-- TODO: hook up to /agent/purchase -->
+            <form method="post" action="#">
+              <input type="hidden" name="airline_name" value="{{ f.airline_name }}">
+              <input type="hidden" name="flight_num" value="{{ f.flight_num }}">
+              <input type="hidden" name="airplane_id" value="{{ f.airplane_id }}">
+              <button type="submit">Sell</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% elif qArrive or qDepart or qCityArr or qCityDep or qDate %}
+  <p>No upcoming flights found for your search.</p>
+{% endif %}
+
 {% endblock %}

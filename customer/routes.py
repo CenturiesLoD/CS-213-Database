@@ -105,7 +105,7 @@ def search_flights():
 
     #updated
     if not (qArrive or qDepart or qCityArr or qCityDep or qDate):
-        flash(qCityDep)
+        #flash(qCityDep)
         flash("Please enter at least one search field.")
         return redirect(url_for("customer.search_flights"))
 
@@ -348,7 +348,7 @@ def purchase():
             raise ValueError("This flight is full.")
 
         # 3) Create ticket (assumes AUTO_INCREMENT ticket_id)
-        flash("HI")
+        #flash("HI")
 
         cursor.execute(
             "INSERT INTO ticket (ticket_id, airline_name, flight_num) VALUES (%s, %s, %s)",

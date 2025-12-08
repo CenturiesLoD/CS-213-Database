@@ -22,36 +22,40 @@
 
 <h3>Upcoming flights</h3>
 {% if flights and flights|length > 0 %}
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>Airline</th>
-        <th>Flight #</th>
-        <th>Departure airport</th>
-        <th>Departure time</th>
-        <th>Arrival airport</th>
-        <th>Arrival time</th>
-        <th>Status</th>
-        <th>Tickets</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for f in flights %}
-      <tr>
-        <td>{{ f.airline_name }}</td>
-        <td>{{ f.flight_num }}</td>
-        <td>{{ f.departure_airport }}</td>
-        <td>{{ f.departure_time }}</td>
-        <td>{{ f.arrival_airport }}</td>
-        <td>{{ f.arrival_time }}</td>
-        <td>{{ f.status }}</td>
-        <td>{{ f.ticket_amount }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div style="border: 1px solid #000; padding: 0.5em; margin-top: 0.75em;">
+    <!-- <h3>Your upcoming flights</h3> -->
+    <table border="1" cellpadding="4" cellspacing="0">
+      <thead>
+        <tr>
+          <th>Airline</th>
+          <th>Flight #</th>
+          <th>Departure airport</th>
+          <th>Departure time</th>
+          <th>Arrival airport</th>
+          <th>Arrival time</th>
+          <th>Status</th>
+          <th>Tickets</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in flights %}
+        <tr>
+          <td>{{ f.airline_name }}</td>
+          <td>{{ f.flight_num }}</td>
+          <td>{{ f.departure_airport }}</td>
+          <td>{{ f.departure_time }}</td>
+          <td>{{ f.arrival_airport }}</td>
+          <td>{{ f.arrival_time }}</td>
+          <td>{{ f.status }}</td>
+          <td>{{ f.ticket_amount }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 {% else %}
-  <p>No upcoming flights found.</p>
+  <p>No upcoming flights.</p>
 {% endif %}
+
 {% endblock %}
 
