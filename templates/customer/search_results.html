@@ -46,7 +46,7 @@
             <td>{{ f.departure_time }}</td>
             <td>{{ f.arrival_airport }}</td>
             <td>{{ f.arrival_time }}</td>
-            <td>{{ f.price }}$</td>
+            <td>${{ f.price }}$</td>
             <td>{{ f.status }}</td>
             <td>
               <form method="post" action="{{ url_for('customer.purchase') }}">
