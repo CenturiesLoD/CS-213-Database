@@ -1,4 +1,110 @@
 {% extends "base.html" %}
+{% block title %}Top Customers Analytics{% endblock %}
+
 {% block content %}
-<h2>Top Customers</h2>
+<h2>Top Customers Analytics</h2>
+
+<!-- Top 5 by tickets (last 6 months) -->
+<h3>Top 5 Customers by Tickets (Last 6 Months)</h3>
+<div style="border: 1px solid #000; padding: 0.75em; margin-top: 0.5em;">
+  <canvas id="chartTickets" width="400" height="200"></canvas>
+</div>
+
+{% if top_by_tickets %}
+<table border="1" cellpadding="4" cellspacing="0" style="margin-top: 0.5em;">
+  <thead>
+    <tr>
+      <th>Customer Email</th>
+      <th>Tickets</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in top_by_tickets %}
+    <tr>
+      <td>{{ r.customer_email }}</td>
+      <td>{{ r.ticket_count }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No tickets sold in the last 6 months.</p>
+{% endif %}
+
+<!-- Top 5 by commission (last year) -->
+<h3 style="margin-top: 1.5em;">Top 5 Customers by Commission (Last Year)</h3>
+<div style="border: 1px solid #000; padding: 0.75em; margin-top: 0.5em;">
+  <canvas id="chartCommission" width="400" height="200"></canvas>
+</div>
+
+{% if top_by_commission %}
+<table border="1" cellpadding="4" cellspacing="0" style="margin-top: 0.5em;">
+  <thead>
+    <tr>
+      <th>Customer Email</th>
+      <th>Total Commission</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in top_by_commission %}
+    <tr>
+      <td>{{ r.customer_email }}</td>
+      <td>${{ "%.2f"|format(r.total_commission) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No tickets sold in the last year.</p>
+{% endif %}
+
+<p style="margin-top: 1em;">
+  <a href="{{ url_for('agent.dashboard') }}">Back to dashboard</a>
+</p>
+
+<!-- Chart.js from CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+// Top 5 by tickets
+const ctxTickets = document.getElementById('chartTickets').getContext('2d');
+new Chart(ctxTickets, {
+  type: 'bar',
+  data: {
+    labels: {{ labels_tickets | tojson }},
+    datasets: [{
+      label: 'Tickets Sold (Last 6 Months)',
+      data: {{ values_tickets | tojson }},
+      backgroundColor: 'rgba(54, 162, 235, 0.6)',
+      borderColor: 'rgba(54, 162, 235, 1)',
+      borderWidth: 1
+    }]
+  },
+  options: {
+    scales: {
+      y: { beginAtZero: true }
+    }
+  }
+});
+
+// Top 5 by commission
+const ctxCommission = document.getElementById('chartCommission').getContext('2d');
+new Chart(ctxCommission, {
+  type: 'bar',
+  data: {
+    labels: {{ labels_commission | tojson }},
+    datasets: [{
+      label: 'Total Commission (Last Year)',
+      data: {{ values_commission | tojson }},
+      backgroundColor: 'rgba(255, 99, 132, 0.6)',
+      borderColor: 'rgba(255, 99, 132, 1)',
+      borderWidth: 1
+    }]
+  },
+  options: {
+    scales: {
+      y: { beginAtZero: true }
+    }
+  }
+});
+</script>
 {% endblock %}

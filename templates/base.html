@@ -8,7 +8,18 @@
         <!-- Global search bar: sends query to public.search -->
         <form action="{{ url_for('public.public_search_upcoming') }}" method="GET" style="display:inline-block; margin-left:1rem;">
             <!-- <input type="text" name="q" placeholder="Search flights"> -->
-            <button type="submit">Search Upcoming Flights</button>
+            <button type="submit">
+                <!-- Unique search button that shows what's for what -->
+                {% if session.get('user_type') == 'customer' %}
+                Search Upcoming Flights (Customer)
+                {% elif session.get('user_type') == 'agent' %}
+                Search Upcoming Flights (Agent)
+                {% elif session.get('user_type') == 'staff' %}
+                Search Upcoming Flights (Staff)
+                {% else %}
+                    Search Upcoming Flights
+                {% endif %}
+            </button>
         </form>
       
         <form action="{{ url_for('public.public_search_in_progress') }}" method="GET" style="display:inline-block; margin-left:1rem;">

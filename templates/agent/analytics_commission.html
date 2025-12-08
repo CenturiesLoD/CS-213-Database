@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Commission Analytics{% endblock %}
+
+{% block content %}
+<h2>Commission Analytics (Last 30 Days)</h2>
+
+<div style="border: 1px solid #000; padding: 0.75em; margin-top: 0.75em;">
+  <table border="1" cellpadding="4" cellspacing="0">
+    <thead>
+      <tr>
+        <th>Metric</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Total Commission</td>
+        <td>${{ "%.2f"|format(total_commission) }}</td>
+      </tr>
+      <tr>
+        <td>Average Commission per Ticket</td>
+        <td>${{ "%.2f"|format(avg_commission) }}</td>
+      </tr>
+      <tr>
+        <td>Number of Tickets Sold</td>
+        <td>{{ tickets_sold }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p style="margin-top: 1em;">
+  <a href="{{ url_for('agent.dashboard') }}">Back to dashboard</a>
+</p>
+{% endblock %}

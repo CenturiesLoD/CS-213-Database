@@ -1,4 +1,38 @@
 {% extends "base.html" %}
+{% block title %}Agent Dashboard{% endblock %}
+
 {% block content %}
-<h2>Agent Dashboard</h2>
+<h2>Booking Agent Dashboard</h2>
+
+<p>Welcome, booking agent. Use the links below to manage your sales and view analytics.</p>
+
+<div style="border: 1px solid #000; padding: 0.75em; margin-top: 0.75em;">
+  <ul>
+    <!-- <li>
+      <a href="{{ url_for('agent.search') }}">
+        Search flights to sell
+      </a>
+    </li> -->
+    <li> 
+      <a href="{{ url_for('agent.flights') }}">
+        View flights you have purchased for customers
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('agent.commission') }}">
+        Commission analytics (last 30 days)
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('agent.top_customers') }}">
+        Top customers analytics
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('agent.debug_airlines') }}">
+        Authorized airlines (debug)
+      </a>
+    </li>
+  </ul>
+</div>
 {% endblock %}

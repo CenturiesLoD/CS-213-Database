@@ -143,7 +143,7 @@ def public_search_in_progress():
         flight_num=flight_num,
     )
 
-#Should handle cases when customer is searching from public search page
+#Should handle cases when anyone signed in is searching from public search page
 @public_bp.before_request
 def _redirect_customer_from_public_search():
     # Only intercept for these public endpoints
@@ -162,6 +162,10 @@ def _redirect_customer_from_public_search():
         "public.public_search_upcoming",}:
         args = request.args.to_dict(flat=True)  # MultiDict -> dict for url_for [web:304]
         return redirect(url_for("agent.search", **args))
+    elif session.get("user_type") == "staff" and request.endpoint in {
+        "public.public_search_upcoming",}:
+        args = request.args.to_dict(flat=True)  # MultiDict -> dict for url_for [web:304]
+        return redirect(url_for("staff.search", **args))
 
 @public_bp.route("/status")
 def public_status():

@@ -14,10 +14,10 @@
     </div>
     {% if session.get("user_type") == "customer" %}
     <a href="{{ url_for('customer.dashboard') }}" class="btn btn-primary">Go to your dashboard</a>
-    {# elif session.get("user_type") == "agent" %}
+    {% elif session.get("user_type") == "agent" %}
     <a href="{{ url_for('agent.dashboard') }}" class="btn btn-primary">Go to your dashboard</a>
-    elif session.get("user_type") == "staff" %}
-    <a href="{{ url_for('staff.dashboard') }}" class="btn btn-primary">Go to your dashboard</a> #}
+    {% elif session.get("user_type") == "staff" %}
+    <a href="{{ url_for('staff.dashboard') }}" class="btn btn-primary">Go to your dashboard</a> 
     {% endif %}
 
     <h3>Airlines in our system:</h3>

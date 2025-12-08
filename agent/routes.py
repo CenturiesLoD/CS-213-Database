@@ -416,18 +416,136 @@ def purchase():
 
 @agent_bp.route("/analytics/commission")
 def commission():
+    """
+    Show commission analytics for this agent:
+      - Total commission last 30 days
+      - Average commission per ticket last 30 days
+      - Number of tickets sold last 30 days
+    Assumes commission = 10% of ticket price.
+    """
     if session.get("user_type") != "agent":
         flash("You must log in as a booking agent to view analytics.")
         return redirect(url_for("auth.login"))
-    return render_template("agent/analytics_commission.html")
+
+    agent_email = session.get("email")
+
+    total_commission = 0
+    avg_commission = 0
+    tickets_sold = 0
+
+    conn = get_db_connection()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    try:
+        # Query: sum(price * 0.10) for tickets sold by this agent in last 30 days
+        sql = """
+            SELECT 
+                COUNT(*) AS tickets_sold,
+                COALESCE(SUM(f.price * 0.10), 0) AS total_commission,
+                COALESCE(AVG(f.price * 0.10), 0) AS avg_commission
+            FROM purchases p
+            JOIN ticket t ON p.ticket_id = t.ticket_id
+            JOIN flight f ON t.airline_name = f.airline_name
+                         AND t.flight_num = f.flight_num
+            WHERE p.booking_agent_email = %s
+              AND p.purchase_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        """
+        cursor.execute(sql, (agent_email,))
+        row = cursor.fetchone()
+        #results of ticket sold, total commission, avg commission
+        if row:
+            tickets_sold = row["tickets_sold"]
+            total_commission = float(row["total_commission"])
+            avg_commission = float(row["avg_commission"])
+    except Exception as e:
+        flash(f"Failed to load commission data: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+
+    return render_template(
+        "agent/analytics_commission.html",
+        total_commission=total_commission,
+        avg_commission=avg_commission,
+        tickets_sold=tickets_sold,
+    )
+
 
 
 @agent_bp.route("/analytics/top_customers")
 def top_customers():
+    """
+    Show top 5 customers for this agent:
+      - By number of tickets (last 6 months)
+      - By total commission (last year)
+    """
     if session.get("user_type") != "agent":
         flash("You must log in as a booking agent to view analytics.")
         return redirect(url_for("auth.login"))
-    return render_template("agent/analytics_top_customers.html")
+
+    agent_email = session.get("email")
+
+    top_by_tickets = []
+    top_by_commission = []
+
+    conn = get_db_connection()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    try:
+        # 1) Top 5 customers by number of tickets in last 6 months
+        sql_tickets = """
+            SELECT 
+                p.customer_email,
+                COUNT(*) AS ticket_count
+            FROM purchases p
+            WHERE p.booking_agent_email = %s
+              AND p.purchase_date >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+            GROUP BY p.customer_email
+            ORDER BY ticket_count DESC
+            LIMIT 5
+        """
+        cursor.execute(sql_tickets, (agent_email,))
+        top_by_tickets = cursor.fetchall()
+
+        # 2) Top 5 customers by total commission in last year
+        sql_commission = """
+            SELECT 
+                p.customer_email,
+                SUM(f.price * 0.10) AS total_commission
+            FROM purchases p
+            JOIN ticket t ON p.ticket_id = t.ticket_id
+            JOIN flight f ON t.airline_name = f.airline_name
+                         AND t.flight_num = f.flight_num
+            WHERE p.booking_agent_email = %s
+              AND p.purchase_date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+            GROUP BY p.customer_email
+            ORDER BY total_commission DESC
+            LIMIT 5
+        """
+        cursor.execute(sql_commission, (agent_email,))
+        top_by_commission = cursor.fetchall()
+
+    except Exception as e:
+        flash(f"Failed to load top customers data: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+
+    # Prepare data for Chart.js
+    labels_tickets = [r["customer_email"] for r in top_by_tickets]
+    values_tickets = [r["ticket_count"] for r in top_by_tickets]
+
+    labels_commission = [r["customer_email"] for r in top_by_commission]
+    values_commission = [float(r["total_commission"]) for r in top_by_commission]
+
+    return render_template(
+        "agent/analytics_top_customers.html",
+        top_by_tickets=top_by_tickets,
+        top_by_commission=top_by_commission,
+        labels_tickets=labels_tickets,
+        values_tickets=values_tickets,
+        labels_commission=labels_commission,
+        values_commission=values_commission,
+    )
+
 
 
 
