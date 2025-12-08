@@ -156,6 +156,15 @@ def search():
     qCityDep = request.args.get("qCityDep", "").strip()
     qDate   = request.args.get("qDate", "").strip()
 
+
+    #FROM TEST 12/8
+
+
+    failed_airline_name  = request.args.get("failed_airline_name", "")
+    failed_flight_num    = request.args.get("failed_flight_num", "")
+    failed_customer_email = request.args.get("failed_customer_email", "")
+    error_msg            = request.args.get("error_msg", "")
+
     # If all are blank, just show the empty form (no results)
     if not (qArrive or qDepart or qCityArr or qCityDep or qDate):
         # Optionally flash once if there were query args:
@@ -241,14 +250,19 @@ def search():
         conn.close()
 
     return render_template(
-        "agent/search.html",
-        flights=flights,
-        qArrive=qArrive,
-        qDepart=qDepart,
-        qCityArr=qCityArr,
-        qCityDep=qCityDep,
-        qDate=qDate,
+    "agent/search.html",
+    flights=flights,
+    qArrive=qArrive,
+    qDepart=qDepart,
+    qCityArr=qCityArr,
+    qCityDep=qCityDep,
+    qDate=qDate,
+    failed_airline_name=failed_airline_name,
+    failed_flight_num=failed_flight_num,
+    failed_customer_email=failed_customer_email,
+    error_msg=error_msg,
     )
+
 
 
 
@@ -283,6 +297,13 @@ def purchase():
     airplane_id    = request.form.get("airplane_id", "").strip()
     customer_email = request.form.get("customer_email", "").strip()
 
+    # filters from the search form
+    qArrive   = request.form.get("qArrive", "").strip()
+    qDepart   = request.form.get("qDepart", "").strip()
+    qCityArr  = request.form.get("qCityArr", "").strip()
+    qCityDep  = request.form.get("qCityDep", "").strip()
+    qDate     = request.form.get("qDate", "").strip()
+
     if not (airline_name and flight_num and airplane_id and customer_email):
         flash("Missing flight or customer data.")
         return redirect(url_for("agent.search"))
@@ -307,8 +328,26 @@ def purchase():
             WHERE email = %s
         """
         cursor.execute(sql_cust, (customer_email,))
-        if cursor.fetchone() is None:
-            raise ValueError("Customer does not exist.")
+        #TEST, SHOULD MAKE IT SO ERROR WOULD KEEP RESULTS ALLOW FOR IMMEDIATELY CORRECTION
+        row_cust = cursor.fetchone()
+        if row_cust is None:
+            # Customer not found: rollback and send user back to search
+            conn.rollback()
+
+            return redirect(url_for(
+                "agent.search",
+                qArrive=qArrive,
+                qDepart=qDepart,
+                qCityArr=qCityArr,
+                qCityDep=qCityDep,
+                qDate=qDate,
+                failed_airline_name=airline_name,
+                failed_flight_num=flight_num,
+                failed_customer_email=customer_email,
+                error_msg="Customer does for one of your inputted emails. Please check the email and try again.",
+            ))
+
+        
 
         # 2) Ensure agent is authorized for this airline
         sql_auth = """
@@ -473,79 +512,10 @@ def commission():
 
 @agent_bp.route("/analytics/top_customers")
 def top_customers():
-    """
-    Show top 5 customers for this agent:
-      - By number of tickets (last 6 months)
-      - By total commission (last year)
-    """
     if session.get("user_type") != "agent":
         flash("You must log in as a booking agent to view analytics.")
         return redirect(url_for("auth.login"))
-
-    agent_email = session.get("email")
-
-    top_by_tickets = []
-    top_by_commission = []
-
-    conn = get_db_connection()
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
-    try:
-        # 1) Top 5 customers by number of tickets in last 6 months
-        sql_tickets = """
-            SELECT 
-                p.customer_email,
-                COUNT(*) AS ticket_count
-            FROM purchases p
-            WHERE p.booking_agent_email = %s
-              AND p.purchase_date >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
-            GROUP BY p.customer_email
-            ORDER BY ticket_count DESC
-            LIMIT 5
-        """
-        cursor.execute(sql_tickets, (agent_email,))
-        top_by_tickets = cursor.fetchall()
-
-        # 2) Top 5 customers by total commission in last year
-        sql_commission = """
-            SELECT 
-                p.customer_email,
-                SUM(f.price * 0.10) AS total_commission
-            FROM purchases p
-            JOIN ticket t ON p.ticket_id = t.ticket_id
-            JOIN flight f ON t.airline_name = f.airline_name
-                         AND t.flight_num = f.flight_num
-            WHERE p.booking_agent_email = %s
-              AND p.purchase_date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
-            GROUP BY p.customer_email
-            ORDER BY total_commission DESC
-            LIMIT 5
-        """
-        cursor.execute(sql_commission, (agent_email,))
-        top_by_commission = cursor.fetchall()
-
-    except Exception as e:
-        flash(f"Failed to load top customers data: {e}")
-    finally:
-        cursor.close()
-        conn.close()
-
-    # Prepare data for Chart.js
-    labels_tickets = [r["customer_email"] for r in top_by_tickets]
-    values_tickets = [r["ticket_count"] for r in top_by_tickets]
-
-    labels_commission = [r["customer_email"] for r in top_by_commission]
-    values_commission = [float(r["total_commission"]) for r in top_by_commission]
-
-    return render_template(
-        "agent/analytics_top_customers.html",
-        top_by_tickets=top_by_tickets,
-        top_by_commission=top_by_commission,
-        labels_tickets=labels_tickets,
-        values_tickets=values_tickets,
-        labels_commission=labels_commission,
-        values_commission=values_commission,
-    )
-
+    return render_template("agent/analytics_top_customers.html")
 
 
 

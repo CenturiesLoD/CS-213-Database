@@ -59,19 +59,40 @@
           <td>{{ f.status }}</td>
           <td>
             <!-- TODO: hook up to /agent/purchase -->
+            <!-- HOOKED UP -->
+            <td>
             <form method="post" action="{{ url_for('agent.purchase') }}">
-              <input type="hidden" name="airline_name" value="{{ f.airline_name }}">
-              <input type="hidden" name="flight_num" value="{{ f.flight_num }}">
-              <input type="hidden" name="airplane_id" value="{{ f.airplane_id }}">
-              <label style="display:block; font-size: 0.9em;">
+                <input type="hidden" name="airline_name" value="{{ f.airline_name }}">
+                <input type="hidden" name="flight_num" value="{{ f.flight_num }}">
+                <input type="hidden" name="airplane_id" value="{{ f.airplane_id }}">
+
+                <!-- keep current search filters -->
+                <input type="hidden" name="qArrive" value="{{ qArrive }}">
+                <input type="hidden" name="qDepart" value="{{ qDepart }}">
+                <input type="hidden" name="qCityArr" value="{{ qCityArr }}">
+                <input type="hidden" name="qCityDep" value="{{ qCityDep }}">
+                <input type="hidden" name="qDate" value="{{ qDate }}">
+
+                <label style="display:block; font-size: 0.9em;">
                 Customer email:
-              <input type="email" name="customer_email" required>
-              </label>
-              <button type="submit">Sell</button>
+                <input type="email" name="customer_email"
+                        value="{% if failed_airline_name == f.airline_name
+                                    and failed_flight_num == f.flight_num %}{{ failed_customer_email }}{% endif %}">
+                </label>
+                
+
+                <button type="submit">Sell</button>
             </form>
+            </td>
+
           </td>
         </tr>
         {% endfor %}
+        {% if error_msg %}
+                <p style="margin-top: 0.5em; color: red;">
+                    {{ error_msg }}
+                </p>
+        {% endif %}
       </tbody>
     </table>
   </div>

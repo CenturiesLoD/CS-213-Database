@@ -166,7 +166,8 @@ def _redirect_customer_from_public_search():
         "public.public_search_upcoming",}:
         args = request.args.to_dict(flat=True)  # MultiDict -> dict for url_for [web:304]
         return redirect(url_for("staff.search", **args))
-
-@public_bp.route("/status")
-def public_status():
-    return render_template("public_status.html")
+    
+    #UNUSED
+# @public_bp.route("/status")
+# def public_status():
+#     return render_template("public_status.html")
