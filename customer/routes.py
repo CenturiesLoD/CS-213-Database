@@ -364,11 +364,13 @@ def purchase():
 
         conn.commit()
         seats_left = row["seat_capacity"] - sold
-        flash(f"Purchased {airline_name} flight {flight_num} at {price}. Seats left: {seats_left}")
+        seats_left_after = seat_capacity - (sold + 1)
+
+        flash(f"Purchased {airline_name} flight {flight_num} at {price}. Seats left: {seats_left_after}")
 
 
         #CONFIRMATION PAGE customer/purchase.html
-        seats_left_after = seat_capacity - (sold + 1)
+        
         return render_template(
             "customer/purchase.html",
             confirmed=True,

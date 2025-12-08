@@ -62,6 +62,11 @@
     </tbody>
   </table>
 {% else %}
-  <p>No flights found for the current filters.</p>
+  <p>No flights found.</p>
 {% endif %}
+
+<p style="margin-top: 1em;">
+  <a href="{{ url_for('agent.dashboard') }}">Back to dashboard</a>
+</p>
+
 {% endblock %}

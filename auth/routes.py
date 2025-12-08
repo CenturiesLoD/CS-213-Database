@@ -162,7 +162,9 @@ def login():
             row = cursor.fetchone()
 
             if row is None:
-                flash("Customer not found.")
+                #changing to generic message to avoid info leak
+                #applying change to all
+                flash("User type, email/username or password is incorrect.")
                 return render_template("login.html")
 
             # row 现在是 dict，如：
@@ -172,7 +174,7 @@ def login():
             name = row["name"]
 
             if not check_password_hash(password_hash, password):
-                flash("Incorrect password.")
+                flash("User type, email/username or password is incorrect.")
                 return render_template("login.html")
 
             # success — 写入 session
@@ -190,14 +192,14 @@ def login():
             row = cursor.fetchone()
 
             if row is None:
-                flash("Agent not found.")
+                flash("User type, email/username or password is incorrect.")
                 return render_template("login.html")
 
             email = row["email"]
             password_hash = row["password"]
 
             if not check_password_hash(password_hash, password):
-                flash("Incorrect password.")
+                flash("User type, email/username or password is incorrect.")
                 return render_template("login.html")
 
             session.clear()
@@ -215,7 +217,7 @@ def login():
             cursor.execute(sql, (identifier,))
             row = cursor.fetchone()
             if not row:
-                flash("Staff not found.")
+                flash("User type, email/username or password is incorrect.")
                 return render_template("login.html")
 
             username = row["username"]
@@ -224,7 +226,7 @@ def login():
             role = row["role"]
 
             if not check_password_hash(password_hash, password):
-                flash("Incorrect password.")
+                flash("User type, email/username or password is incorrect.")
                 return render_template("login.html")
 
             session.clear()

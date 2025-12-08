@@ -24,4 +24,9 @@
 </form>
 <!-- block results to be filled in search_results.html -->
 {% block dis_results %} {% endblock %}
+<p style="margin-top: 1em;">
+  <a href="{{ url_for('customer.dashboard') }}" class="btn btn-primary">
+    Back to dashboard
+  </a>
+</p>
 {% endblock %}

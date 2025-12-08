@@ -13,5 +13,9 @@
 {% else %}
   <p>No purchase to display.</p>
 {% endif %}
-
+<p style="margin-top: 1em;">
+  <a href="{{ url_for('customer.dashboard') }}" class="btn btn-primary">
+    Back to dashboard
+  </a>
+</p>
 {% endblock %}
