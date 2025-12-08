@@ -73,7 +73,7 @@ CREATE TABLE `airline_staff` (
   `last_name` varchar(50) NOT NULL,
   `date_of_birth` date NOT NULL,
   `airline_name` varchar(50) NOT NULL,
-  `role` enum('admin','operator','both') DEFAULT 'admin'
+  `role` enum('staff','admin','operator','both') DEFAULT 'admin'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------

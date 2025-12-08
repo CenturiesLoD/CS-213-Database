@@ -2,6 +2,23 @@ from flask import Blueprint, render_template, session, redirect, request, url_fo
 from db import get_db_connection
 import pymysql
 
+def require_staff_login():
+    if "user_type" not in session or session["user_type"] != "staff":
+        return redirect("/login")
+    return None
+
+def require_staff_admin():
+    role = (session.get("role") or "").strip().lower()
+    if role not in ("admin", "both"):
+        return "Access denied: admin only", 403
+    return None
+
+def require_staff_operator():
+    role = (session.get("staff_role") or "").strip().lower()
+    if role not in ("operator", "both"):
+        return "Access denied: operator only", 403
+    return None
+
 staff_bp = Blueprint("staff", __name__)
 
 @staff_bp.route("/dashboard")
@@ -11,8 +28,9 @@ def dashboard():
         return redirect("/login")
 
     airline = session.get("airline_name")
-    raw_role = session.get("staff_role", "")
+    raw_role = session.get("role", "")   # ← 正确的 key 是 "role"
     role = (raw_role or "").strip().lower()
+
     is_admin = role in ("admin", "both")
     is_operator = role in ("operator", "both")
 
@@ -58,7 +76,7 @@ def next30():
         return "No airline found for this staff member", 400
 
     conn = get_db_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
 
     sql = """
         SELECT 
@@ -104,7 +122,7 @@ def search():
     date = request.form.get("date", "").strip().lower()
 
     conn = get_db_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
 
     sql = """
         SELECT
@@ -162,7 +180,7 @@ def passenger_list(airline, flight_num):
         return redirect("/login")
 
     conn = get_db_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
 
     # fetch flight info
     cursor.execute("""

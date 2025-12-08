@@ -156,9 +156,6 @@ def login():
 
     if request.method == "GET":
         return render_template("login.html")
-    
-    if request.method == "GET":
-        return render_template("login.html")
 
     user_type = request.form.get("user_type")  # customer / agent / staff
     identifier = request.form.get("identifier")  # email or username
@@ -249,7 +246,7 @@ def login():
             session["user_type"] = "staff"
             session["username"] = username
             session["airline_name"] = airline_name
-            session["role"] = role  # admin / operator / both
+            session["staff_role"] = role
 
             return redirect(url_for("staff.dashboard"))
 
