@@ -261,6 +261,158 @@ def search():
 #         return redirect(url_for("auth.login"))
 #     return render_template("agent/search.html")
 
+#Purchase function where agent can dictate who to purchase for
+@agent_bp.route("/purchase", methods=["POST"])
+def purchase():
+    """
+    Booking agent purchases a ticket on behalf of a customer.
+    Enforces:
+      - agent is logged in
+      - customer exists
+      - agent is authorized for the airline
+      - flight is upcoming and not full
+    """
+    if session.get("user_type") != "agent":
+        flash("You must log in as a booking agent to purchase.")
+        return redirect(url_for("auth.login"))
+
+    agent_email = session.get("email")
+
+    airline_name   = request.form.get("airline_name", "").strip()
+    flight_num     = request.form.get("flight_num", "").strip()
+    airplane_id    = request.form.get("airplane_id", "").strip()
+    customer_email = request.form.get("customer_email", "").strip()
+
+    if not (airline_name and flight_num and airplane_id and customer_email):
+        flash("Missing flight or customer data.")
+        return redirect(url_for("agent.search"))
+
+    # Optional: basic sanity for flight_num / airplane_id
+    try:
+        flight_num = int(flight_num)
+        airplane_id = int(airplane_id)
+    except ValueError:
+        flash("Invalid flight data.")
+        return redirect(url_for("agent.search"))
+
+    conn = get_db_connection()
+    conn.begin()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+
+    try:
+        # 1) Ensure customer exists
+        sql_cust = """
+            SELECT email
+            FROM customer
+            WHERE email = %s
+        """
+        cursor.execute(sql_cust, (customer_email,))
+        if cursor.fetchone() is None:
+            raise ValueError("Customer does not exist.")
+
+        # 2) Ensure agent is authorized for this airline
+        sql_auth = """
+            SELECT 1
+            FROM agent_airline_authorization
+            WHERE agent_email = %s
+              AND airline_name = %s
+        """
+        cursor.execute(sql_auth, (agent_email, airline_name))
+        if cursor.fetchone() is None:
+            raise ValueError("You are not authorized to sell tickets for this airline.")
+
+        # 3) Read current price/status/capacity for the flight (lock row)
+        sql_flight = """
+            SELECT f.price,
+                   f.status,
+                   a.seat_capacity AS seat_capacity
+            FROM flight f
+            JOIN airplane a
+              ON a.airline_name = f.airline_name
+             AND a.airplane_id = f.airplane_id
+            WHERE f.airline_name = %s
+              AND f.flight_num   = %s
+              AND f.airplane_id  = %s
+            FOR UPDATE
+        """
+        cursor.execute(sql_flight, (airline_name, flight_num, airplane_id))
+        row = cursor.fetchone()
+        if not row:
+            raise ValueError("Flight not found.")
+
+        if row["status"] != "upcoming":
+            raise ValueError("Flight is not available for purchase.")
+
+        price = row["price"]
+        seat_capacity = row["seat_capacity"]
+
+        # 4) Count tickets already sold for this flight (lock related rows)
+        sql_sold = """
+            SELECT COUNT(*) AS sold
+            FROM ticket t
+            JOIN purchases p ON p.ticket_id = t.ticket_id
+            WHERE t.airline_name = %s
+              AND t.flight_num   = %s
+            FOR UPDATE
+        """
+        cursor.execute(sql_sold, (airline_name, flight_num))
+        sold = cursor.fetchone()["sold"]
+
+        if sold >= seat_capacity:
+            raise ValueError("This flight is full.")
+
+        # 5) Generate next ticket_id by filling gaps
+        #    Find the smallest positive integer not already used as a ticket_id.
+        cursor.execute(
+            "SELECT ticket_id FROM ticket ORDER BY ticket_id FOR UPDATE"
+        )
+        rows = cursor.fetchall()
+
+        next_id = 1
+        for r in rows:
+            current = r["ticket_id"]
+            if current > next_id:
+                # Found a gap: next_id is not used
+                break
+            if current == next_id:
+                next_id += 1
+        # After the loop, next_id is either the first gap or 1 + max(ticket_id)
+
+
+        # 6) Insert ticket with explicit ticket_id
+        cursor.execute(
+            "INSERT INTO ticket (ticket_id, airline_name, flight_num) VALUES (%s, %s, %s)",
+            (next_id, airline_name, flight_num),
+        )
+
+        # 7) Insert purchase, including booking_agent_email
+        cursor.execute(
+            """
+            INSERT INTO purchases (ticket_id, customer_email, booking_agent_email, purchase_date)
+            VALUES (%s, %s, %s, CURDATE())
+            """,
+            (next_id, customer_email, agent_email),
+        )
+
+        conn.commit()
+
+        seats_left_after = seat_capacity - (sold + 1)
+        flash(
+            f"Sold {airline_name} flight {flight_num} to {customer_email} at {price}. "
+            f"Seats left: {seats_left_after}"
+        )
+
+        # After sale, go back to agent flights list or search
+        return redirect(url_for("agent.flights"))
+
+    except Exception as e:
+        conn.rollback()
+        flash(f"Purchase failed: {e}")
+        return redirect(url_for("agent.search"))
+    finally:
+        cursor.close()
+        conn.close()
+
 
 @agent_bp.route("/analytics/commission")
 def commission():

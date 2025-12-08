@@ -59,10 +59,14 @@
           <td>{{ f.status }}</td>
           <td>
             <!-- TODO: hook up to /agent/purchase -->
-            <form method="post" action="#">
+            <form method="post" action="{{ url_for('agent.purchase') }}">
               <input type="hidden" name="airline_name" value="{{ f.airline_name }}">
               <input type="hidden" name="flight_num" value="{{ f.flight_num }}">
               <input type="hidden" name="airplane_id" value="{{ f.airplane_id }}">
+              <label style="display:block; font-size: 0.9em;">
+                Customer email:
+              <input type="email" name="customer_email" required>
+              </label>
               <button type="submit">Sell</button>
             </form>
           </td>
