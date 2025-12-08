@@ -1,4 +1,44 @@
 {% extends "base.html" %}
 {% block content %}
 <h2>Flights in the Next 30 Days</h2>
+
+{% if flights %}
+<table border="1" cellpadding="6" cellspacing="0">
+    <thead>
+        <tr>
+            <th>Airline</th>
+            <th>Flight #</th>
+            <th>Departure Airport</th>
+            <th>Departure Time</th>
+            <th>Arrival Airport</th>
+            <th>Arrival Time</th>
+            <th>Status</th>
+            <th>Airplane ID</th>
+            <th>Passengers</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for f in flights %}
+        <tr>
+            <td>{{ f.airline_name }}</td>
+            <td>{{ f.flight_num }}</td>
+            <td>{{ f.departure_airport }}</td>
+            <td>{{ f.departure_time }}</td>
+            <td>{{ f.arrival_airport }}</td>
+            <td>{{ f.arrival_time }}</td>
+            <td>{{ f.status }}</td>
+            <td>{{ f.airplane_id }}</td>
+            <td>
+                <a href="{{ url_for('staff.passenger_list', airline=f.airline_name, flight_num=f.flight_num) }}">
+                    View Passengers
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No upcoming flights in the next 30 days.</p>
+{% endif %}
+
 {% endblock %}

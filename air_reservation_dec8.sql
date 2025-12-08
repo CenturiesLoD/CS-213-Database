@@ -68,7 +68,7 @@ INSERT INTO `airline` (`airline_name`) VALUES
 
 CREATE TABLE `airline_staff` (
   `username` varchar(50) NOT NULL,
-  `password` varchar(50) NOT NULL,
+  `password` varchar(255) NOT NULL,
   `first_name` varchar(50) NOT NULL,
   `last_name` varchar(50) NOT NULL,
   `date_of_birth` date NOT NULL,

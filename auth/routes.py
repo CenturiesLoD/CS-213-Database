@@ -89,40 +89,56 @@ def register_agent():
 
 @auth_bp.route("/register/staff", methods=["GET", "POST"])
 def register_staff():
-    if request.method == "GET":
-        return render_template("auth/register_staff.html")
-
-    username = request.form.get("username")
-    password = generate_password_hash(request.form.get("password"))
-    first = request.form.get("first_name")
-    last = request.form.get("last_name")
-    dob = request.form.get("date_of_birth")
-    airline = request.form.get("airline_name")
-    role = request.form.get("role")
-
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    try:
+    # 先把所有航空公司读出来，给下拉菜单用
+    cursor.execute("SELECT airline_name FROM airline ORDER BY airline_name")
+    airlines = cursor.fetchall()  # [{'airline_name': 'DemoAir1'}, ...]
+
+    if request.method == "POST":
+        username = request.form.get("username")
+        raw_password = request.form.get("password")
+        first_name = request.form.get("first_name")
+        last_name = request.form.get("last_name")
+        date_of_birth = request.form.get("date_of_birth")
+        airline_name = request.form.get("airline_name")
+        role = request.form.get("role")   # 'admin' / 'operator' / 'both'
+
+        # 基本校验（可以按需再严格一些）
+        if not all([username, raw_password, first_name, last_name, date_of_birth, airline_name, role]):
+            flash("All fields are required.")
+            return render_template("auth/register_staff.html", airlines=airlines)
+
+        hashed_pw = generate_password_hash(raw_password)
+
         sql = """
             INSERT INTO airline_staff (
-                username, password, first_name, last_name,
-                date_of_birth, airline_name, role
+                username, password, first_name, last_name, date_of_birth, airline_name, role
             )
-            VALUES (%s,%s,%s,%s,%s,%s,%s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
-        cursor.execute(sql, (username, password, first, last, dob, airline, role))
-        conn.commit()
-        flash("Staff registered! Please log in.")
-        return redirect(url_for("auth.login"))
-    except Exception as e:
-        conn.rollback()
-        flash(str(e))
-        return redirect(url_for("auth.register_staff"))
-    finally:
-        cursor.close()
-        conn.close()
-
+        try:
+            cursor.execute(sql, (
+                username,
+                hashed_pw,
+                first_name,
+                last_name,
+                date_of_birth,
+                airline_name,
+                role,
+            ))
+            conn.commit()
+            flash("Staff registered! Please log in.")
+            return redirect(url_for("auth.login"))
+        except Exception as e:
+            conn.rollback()
+            flash(f"Registration failed: {e}")
+            return render_template("auth/register_staff.html", airlines=airlines)
+    # GET 或出错重渲染
+    cursor.close()
+    conn.close()
+    return render_template("auth/register_staff.html", airlines=airlines)
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():

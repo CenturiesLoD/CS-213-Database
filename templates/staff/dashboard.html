@@ -1,4 +1,43 @@
 {% extends "base.html" %}
+
+{% block title %}Staff Dashboard{% endblock %}
+
 {% block content %}
-<h2>Staff Dashboard</h2>
+  <h2>Staff Dashboard</h2>
+
+  {% if airline_name %}
+    <p>Airline: <strong>{{ airline_name }}</strong></p>
+  {% endif %}
+
+  <h3>Upcoming Flights (next 30 days)</h3>
+
+  {% if flights and flights|length > 0 %}
+    <table border="1" cellpadding="6" cellspacing="0">
+      <thead>
+        <tr>
+          <th>Flight</th>
+          <th>Departure Airport</th>
+          <th>Departure Time</th>
+          <th>Arrival Airport</th>
+          <th>Arrival Time</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in flights %}
+          <tr>
+            <td>{{ f.airline_name }} {{ f.flight_num }}</td>
+            <td>{{ f.departure_airport }}</td>
+            <td>{{ f.departure_time }}</td>
+            <td>{{ f.arrival_airport }}</td>
+            <td>{{ f.arrival_time }}</td>
+            <td>{{ f.status }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No upcoming flights found for the next 30 days.</p>
+  {% endif %}
+
 {% endblock %}

@@ -1,4 +1,74 @@
 {% extends "base.html" %}
 {% block content %}
 <h2>Staff Flight Search</h2>
+
+<p>You may filter by departure airport, arrival airport, city, or date. Only flights from your airline will be shown.</p>
+
+<form method="post" action="{{ url_for('staff.search') }}" class="form-group">
+
+  <div class="form-group">
+    <label>Departure Airport (optional)</label>
+    <input type="text" name="departure" class="form-control"
+           placeholder="e.g. ORD">
+  </div>
+
+  <div class="form-group">
+    <label>Arrival Airport (optional)</label>
+    <input type="text" name="arrival" class="form-control"
+           placeholder="e.g. JFK">
+  </div>
+
+  <div class="form-group">
+    <label>City (optional)</label>
+    <input type="text" name="city" class="form-control"
+           placeholder="e.g. New York City">
+  </div>
+
+  <div class="form-group">
+    <label>Date (optional)</label>
+    <input type="text" name="date" class="form-control"
+           placeholder="YYYY-MM-DD">
+  </div>
+
+  <button type="submit" class="btn btn-primary">Search</button>
+</form>
+
+{% if results is defined %}
+  <hr>
+  <h3>Search Results</h3>
+
+  {% if results %}
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Flight #</th>
+          <th>Departure Airport</th>
+          <th>Departure Time</th>
+          <th>Arrival Airport</th>
+          <th>Arrival Time</th>
+          <th>Status</th>
+          <th>From City</th>
+          <th>To City</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in results %}
+        <tr>
+          <td>{{ f.flight_num }}</td>
+          <td>{{ f.departure_airport }}</td>
+          <td>{{ f.departure_time }}</td>
+          <td>{{ f.arrival_airport }}</td>
+          <td>{{ f.arrival_time }}</td>
+          <td>{{ f.status }}</td>
+          <td>{{ f.dep_city }}</td>
+          <td>{{ f.arr_city }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No flights match your filters.</p>
+  {% endif %}
+{% endif %}
+
 {% endblock %}

@@ -19,10 +19,11 @@
     <input type="date" name="date_of_birth" required><br><br>
 
     <label>Airline:</label>
-    <select name="airline_name" required>
+    <select name="airline_name" id="airline_name">
         <option value="">-- Select Airline --</option>
-        <option value="Airline A">Airline A</option>
-        <option value="Airline B">Airline B</option>
+        {% for a in airlines %}
+            <option value="{{ a.airline_name }}">{{ a.airline_name }}</option>
+        {% endfor %}
     </select>
     <br>
     

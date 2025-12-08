@@ -5,6 +5,15 @@ INSERT INTO airline (airline_name)
 VALUES ('Airline A'), ('Airline B');
 
 -- ============================
+-- CITY (required by schema)
+-- ============================
+INSERT INTO city (city_name)
+VALUES ('Shanghai'),
+       ('New York'),
+       ('Los Angeles'),
+       ('San Francisco');
+
+-- ============================
 -- AIRPORT
 -- ============================
 INSERT INTO airport (airport_name, airport_city)

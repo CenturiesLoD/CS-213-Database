@@ -1,4 +1,38 @@
 {% extends "base.html" %}
 {% block content %}
 <h2>Passenger List</h2>
+
+{% if flight %}
+  <p><strong>Flight:</strong> {{ flight.airline_name }} {{ flight.flight_num }}</p>
+  <p><strong>Departure:</strong> {{ flight.departure_airport }} at {{ flight.departure_time }}</p>
+  <p><strong>Arrival:</strong> {{ flight.arrival_airport }} at {{ flight.arrival_time }}</p>
+{% endif %}
+
+<hr>
+
+{% if passengers is defined %}
+  {% if passengers %}
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Customer Email</th>
+                <th>Customer Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in passengers %}
+            <tr>
+                <td>{{ p.customer_email }}</td>
+                <td>{{ p.name }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+  {% else %}
+    <p>No passengers found for this flight.</p>
+  {% endif %}
+{% else %}
+  <p>No passenger data to display. This page must be loaded through a specific flight link.</p>
+{% endif %}
+
 {% endblock %}

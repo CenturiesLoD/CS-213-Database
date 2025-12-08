@@ -82,7 +82,11 @@
     <br><br>
 
     <label>Airline Name:</label>
-    <input type="text" name="airline_name">
+    <select name="airline_name">
+        {% for a in airlines %}
+            <option value="{{ a.airline_name }}">{{ a.airline_name }}</option>
+        {% endfor %}
+    </select>
     <br><br>
 
     <label>Role:</label>
