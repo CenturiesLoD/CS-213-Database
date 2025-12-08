@@ -1,4 +1,64 @@
 {% extends "base.html" %}
+{% block title %}Update Flight Status{% endblock %}
+
 {% block content %}
 <h2>Update Flight Status</h2>
+<p>Only flights for your airline ({{ airline_name }}) are shown below.</p>
+
+<form method="post" class="mb-3">
+  <div class="mb-2">
+    <label for="flight_num" class="form-label">Flight</label>
+    <select id="flight_num" name="flight_num" class="form-select" required>
+      <option value="">Select a flight</option>
+      {% for f in flights %}
+      <option value="{{ f.flight_num }}">
+        {{ f.flight_num }} — {{ f.departure_airport }} → {{ f.arrival_airport }}
+        ({{ f.status }})
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="mb-2">
+    <label for="status" class="form-label">New status</label>
+    <select id="status" name="status" class="form-select" required>
+      <option value="upcoming">upcoming</option>
+      <option value="in-progress">in-progress</option>
+      <option value="delayed">delayed</option>
+      <option value="canceled">canceled</option>
+    </select>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Update status</button>
+</form>
+
+<hr class="my-4">
+
+<h3>All flights for {{ airline_name }}</h3>
+<div class="table-responsive">
+  <table class="table table-dark table-striped table-bordered table-sm align-middle mb-0">
+    <thead class="table-secondary text-dark">
+      <tr>
+        <th>Flight #</th>
+        <th>Departure airport</th>
+        <th>Departure time</th>
+        <th>Arrival airport</th>
+        <th>Arrival time</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for f in flights %}
+      <tr>
+        <td>{{ f.flight_num }}</td>
+        <td>{{ f.departure_airport }}</td>
+        <td>{{ f.departure_time }}</td>
+        <td>{{ f.arrival_airport }}</td>
+        <td>{{ f.arrival_time }}</td>
+        <td>{{ f.status }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}
