@@ -52,4 +52,8 @@
 {% else %}
 <p>No agent sales found in the last year.</p>
 {% endif %}
+<a href="{{ url_for('staff.dashboard') }}"
+   style="display:inline-block;margin-bottom:1rem;padding:0.4rem 0.8rem;border:1px solid #8789ff;border-radius:4px;text-decoration:none;color:#4f94c6;">
+  ← Back to dashboard
+</a>
 {% endblock %}
