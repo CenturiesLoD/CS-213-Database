@@ -7,6 +7,11 @@
 
   {% if airline_name %}
     <p>Airline: <strong>{{ airline_name }}</strong></p>
+  <h3>Analytics</h3>
+  <ul>
+    <li><a href="{{ url_for('staff.analytics_agents') }}">Top Booking Agents</a></li>
+    <li><a href="{{ url_for('staff.analytics_customers') }}">Most Frequent Customers</a></li>
+  </ul>
   {% endif %}
 
   {% if is_admin %}
