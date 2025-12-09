@@ -246,7 +246,7 @@ def login():
             session["user_type"] = "staff"
             session["username"] = username
             session["airline_name"] = airline_name
-            session["staff_role"] = role
+            session["role"] = role
 
             return redirect(url_for("staff.dashboard"))
 
