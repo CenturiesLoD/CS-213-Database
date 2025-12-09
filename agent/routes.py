@@ -159,7 +159,7 @@ def search():
 
     #FROM TEST 12/8
 
-
+    #here for failed inputs to persist through failed purchase attempts
     failed_airline_name  = request.args.get("failed_airline_name", "")
     failed_flight_num    = request.args.get("failed_flight_num", "")
     failed_customer_email = request.args.get("failed_customer_email", "")
@@ -341,6 +341,7 @@ def purchase():
                 qCityArr=qCityArr,
                 qCityDep=qCityDep,
                 qDate=qDate,
+                #here so the result persists through failure
                 failed_airline_name=airline_name,
                 failed_flight_num=flight_num,
                 failed_customer_email=customer_email,
