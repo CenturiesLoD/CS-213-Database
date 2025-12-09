@@ -1,4 +1,55 @@
 {% extends "base.html" %}
+
+{% block title %}Staff Analytics – Booking Agents{% endblock %}
+
 {% block content %}
-<h2>Top Booking Agents</h2>
+<h2>Booking Agent Analytics – {{ airline_name }}</h2>
+
+<h3>Top booking agents – last month</h3>
+{% if top_agents_month %}
+<table border="1" cellpadding="5" cellspacing="0">
+  <thead>
+    <tr>
+      <th>Agent email</th>
+      <th>Tickets sold</th>
+      <th>Total commission</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for a in top_agents_month %}
+    <tr>
+      <td>{{ a.agent_email }}</td>
+      <td>{{ a.tickets_sold }}</td>
+      <td>{{ "%.2f"|format(a.total_commission or 0) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No agent sales found in the last month.</p>
+{% endif %}
+
+<h3>Top booking agents – last year</h3>
+{% if top_agents_year %}
+<table border="1" cellpadding="5" cellspacing="0">
+  <thead>
+    <tr>
+      <th>Agent email</th>
+      <th>Tickets sold</th>
+      <th>Total commission</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for a in top_agents_year %}
+    <tr>
+      <td>{{ a.agent_email }}</td>
+      <td>{{ a.tickets_sold }}</td>
+      <td>{{ "%.2f"|format(a.total_commission or 0) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No agent sales found in the last year.</p>
+{% endif %}
 {% endblock %}

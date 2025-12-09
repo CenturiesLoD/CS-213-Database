@@ -1,4 +1,97 @@
 {% extends "base.html" %}
+
+{% block title %}Staff Analytics – Customers{% endblock %}
+
 {% block content %}
-<h2>Frequent Customers / Sales</h2>
+<h2>Customer & Ticket Analytics – {{ airline_name }}</h2>
+
+<h3>Most frequent customers – last year</h3>
+{% if top_customers_year %}
+<table border="1" cellpadding="5" cellspacing="0">
+  <thead>
+    <tr>
+      <th>Customer email</th>
+      <th>Tickets bought</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for c in top_customers_year %}
+    <tr>
+      <td>{{ c.customer_email }}</td>
+      <td>{{ c.tickets_sold }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No customer ticket data found in the last year.</p>
+{% endif %}
+
+<h3>Tickets sold per month – last year</h3>
+{% if tickets_per_month %}
+<table border="1" cellpadding="5" cellspacing="0">
+  <thead>
+    <tr>
+      <th>Month (YYYY-MM)</th>
+      <th>Tickets sold</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in tickets_per_month %}
+    <tr>
+      <td>{{ row.year_month }}</td>
+      <td>{{ row.tickets_sold }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No tickets sold in the last year.</p>
+{% endif %}
+
+<h3>Delay vs on-time / canceled – last year</h3>
+<table border="1" cellpadding="5" cellspacing="0">
+  <thead>
+    <tr>
+      <th>Category</th>
+      <th>Flight count</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>On-time & in-progress</td>
+      <td>{{ on_time }}</td>
+    </tr>
+    <tr>
+      <td>Delayed</td>
+      <td>{{ delayed }}</td>
+    </tr>
+    <tr>
+      <td>Canceled</td>
+      <td>{{ canceled }}</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4>Raw status breakdown</h4>
+{% if status_rows %}
+<table border="1" cellpadding="5" cellspacing="0">
+  <thead>
+    <tr>
+      <th>Status</th>
+      <th>Flight count</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for s in status_rows %}
+    <tr>
+      <td>{{ s.status }}</td>
+      <td>{{ s.flight_count }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No flights in the last year.</p>
+{% endif %}
 {% endblock %}

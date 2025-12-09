@@ -286,3 +286,235 @@ def customer_history():
         airline_name=airline,
         error_msg=error_msg,
     )
+
+@staff_bp.route("/analytics/agents")
+def analytics_agents():
+    # Any staff can view (not admin-only)
+    if session.get("user_type") != "staff":
+        return redirect("/login")
+
+    airline = session.get("airline_name")
+    if not airline:
+        return "No airline found for this staff member", 400
+
+    conn = get_db_connection()
+    cur = conn.cursor(pymysql.cursors.DictCursor)
+    try:
+        # Top booking agents in the last month (by tickets & commission)
+        sql_month = """
+            SELECT
+                p.booking_agent_email AS agent_email,
+                COUNT(*) AS tickets_sold,
+                SUM(f.price * 0.10) AS total_commission
+            FROM purchases p
+            JOIN ticket t
+              ON p.ticket_id = t.ticket_id
+            JOIN flight f
+              ON t.airline_name = f.airline_name
+             AND t.flight_num   = f.flight_num
+            WHERE f.airline_name = %s
+              AND p.purchase_date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
+              AND p.booking_agent_email IS NOT NULL
+            GROUP BY agent_email
+            ORDER BY tickets_sold DESC
+            LIMIT 5;
+        """
+        cur.execute(sql_month, (airline,))
+        top_agents_month = cur.fetchall()
+
+        # Top booking agents in the last year (by tickets & commission)
+        sql_year = """
+            SELECT
+                p.booking_agent_email AS agent_email,
+                COUNT(*) AS tickets_sold,
+                SUM(f.price * 0.10) AS total_commission
+            FROM purchases p
+            JOIN ticket t
+              ON p.ticket_id = t.ticket_id
+            JOIN flight f
+              ON t.airline_name = f.airline_name
+             AND t.flight_num   = f.flight_num
+            WHERE f.airline_name = %s
+              AND p.purchase_date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+              AND p.booking_agent_email IS NOT NULL
+            GROUP BY agent_email
+            ORDER BY tickets_sold DESC
+            LIMIT 5;
+        """
+        cur.execute(sql_year, (airline,))
+        top_agents_year = cur.fetchall()
+    finally:
+        cur.close()
+        conn.close()
+
+    return render_template(
+        "staff/analytics_agents.html",
+        airline_name=airline,
+        top_agents_month=top_agents_month,
+        top_agents_year=top_agents_year,
+    )
+
+@staff_bp.route("/analytics/customers")
+def analytics_customers():
+    # Any staff can view
+    if session.get("user_type") != "staff":
+        return redirect("/login")
+
+    airline = session.get("airline_name")
+    if not airline:
+        return "No airline found for this staff member", 400
+
+    conn = get_db_connection()
+    cur = conn.cursor(pymysql.cursors.DictCursor)
+    try:
+        # Most frequent customers in the last year (by tickets bought)
+        sql_top_customers = """
+            SELECT
+                p.customer_email,
+                COUNT(*) AS tickets_sold
+            FROM purchases p
+            JOIN ticket t
+              ON p.ticket_id = t.ticket_id
+            JOIN flight f
+              ON t.airline_name = f.airline_name
+             AND t.flight_num   = f.flight_num
+            WHERE f.airline_name = %s
+              AND p.purchase_date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+            GROUP BY p.customer_email
+            ORDER BY tickets_sold DESC
+            LIMIT 5;
+        """
+        cur.execute(sql_top_customers, (airline,))
+        top_customers_year = cur.fetchall()
+
+        # Tickets sold per month for the last year
+        sql_tickets_per_month = """
+            SELECT
+                DATE_FORMAT(p.purchase_date, '%%Y-%%m') AS yr_mth,
+                COUNT(*) AS tickets_sold
+            FROM purchases p
+            JOIN ticket t
+            ON p.ticket_id = t.ticket_id
+            JOIN flight f
+            ON t.airline_name = f.airline_name
+            AND t.flight_num   = f.flight_num
+            WHERE f.airline_name = %s
+            AND p.purchase_date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+            GROUP BY DATE_FORMAT(p.purchase_date, '%%Y-%%m')
+            ORDER BY DATE_FORMAT(p.purchase_date, '%%Y-%%m');
+
+
+        """
+        cur.execute(sql_tickets_per_month, (airline,))
+        tickets_per_month = cur.fetchall()
+
+        # Delay vs on-time statistics (last year, by flight status)
+        sql_status_counts = """
+            SELECT
+                f.status,
+                COUNT(*) AS flight_count
+            FROM flight f
+            WHERE f.airline_name = %s
+              AND f.departure_time >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+            GROUP BY f.status;
+        """
+        cur.execute(sql_status_counts, (airline,))
+        status_rows = cur.fetchall()
+    finally:
+        cur.close()
+        conn.close()
+
+    # Aggregate into delayed / on_time buckets using known statuses
+    delayed = sum(r["flight_count"] for r in status_rows if r["status"] == "delayed")
+    on_time = sum(
+        r["flight_count"]
+        for r in status_rows
+        if r["status"] in ("upcoming", "in-progress")
+    )
+    canceled = sum(r["flight_count"] for r in status_rows if r["status"] == "canceled")
+
+    return render_template(
+        "staff/analytics_customers.html",
+        airline_name=airline,
+        top_customers_year=top_customers_year,
+        tickets_per_month=tickets_per_month,
+        status_rows=status_rows,
+        delayed=delayed,
+        on_time=on_time,
+        canceled=canceled,
+    )
+
+#FIX THIS
+@staff_bp.route("/analytics/destinations")
+def analytics_destinations():
+    # Any staff can view
+    if session.get("user_type") != "staff":
+        return redirect("/login")
+
+    airline = session.get("airline_name")
+    if not airline:
+        return "No airline found for this staff member", 400
+
+    conn = get_db_connection()
+    cur = conn.cursor(pymysql.cursors.DictCursor)
+    try:
+        # Top destinations last 3 months (by tickets sold, grouped by arrival city)
+        sql_top_dest_3m = """
+            SELECT
+                arr_city.city_name AS destination_city,
+                COUNT(*) AS tickets_sold
+            FROM purchases p
+            JOIN ticket t
+              ON p.ticket_id = t.ticket_id
+            JOIN flight f
+              ON t.airline_name = f.airline_name
+             AND t.flight_num   = f.flight_num
+            JOIN airport arr
+              ON arr.airport_name = f.arrival_airport
+            JOIN city arr_city
+              ON arr.airport_city = arr_city.city_name
+            WHERE f.airline_name = %s
+              AND p.purchase_date >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)
+            GROUP BY destination_city
+            ORDER BY tickets_sold DESC
+            LIMIT 5;
+        """
+        cur.execute(sql_top_dest_3m, (airline,))
+        top_destinations_3m = cur.fetchall()
+
+        # Top destinations last year (by tickets sold)
+        sql_top_dest_year = """
+            SELECT
+                arr_city.city_name AS destination_city,
+                COUNT(*) AS tickets_sold
+            FROM purchases p
+            JOIN ticket t
+              ON p.ticket_id = t.ticket_id
+            JOIN flight f
+              ON t.airline_name = f.airline_name
+             AND t.flight_num   = f.flight_num
+            JOIN airport arr
+              ON arr.airport_name = f.arrival_airport
+            JOIN city arr_city
+              ON arr.airport_city = arr_city.city_name
+            WHERE f.airline_name = %s
+              AND p.purchase_date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+            GROUP BY destination_city
+            ORDER BY tickets_sold DESC
+            LIMIT 5;
+        """
+        cur.execute(sql_top_dest_year, (airline,))
+        top_destinations_year = cur.fetchall()
+    finally:
+        cur.close()
+        conn.close()
+
+    return render_template(
+        "staff/analytics_destinations.html",
+        airline_name=airline,
+        top_destinations_3m=top_destinations_3m,
+        top_destinations_year=top_destinations_year,
+    )
+
+
+
