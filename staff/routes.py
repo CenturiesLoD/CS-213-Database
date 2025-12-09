@@ -512,8 +512,8 @@ def analytics_destinations():
     return render_template(
         "staff/analytics_destinations.html",
         airline_name=airline,
-        top_destinations_3m=top_destinations_3m,
-        top_destinations_year=top_destinations_year,
+        top_3m=top_destinations_3m,
+        top_1y=top_destinations_year,
     )
 
 

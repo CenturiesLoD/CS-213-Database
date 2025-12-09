@@ -1,4 +1,67 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Top Destinations</h2>
+
+<h2>Top Destinations for {{ airline_name }}</h2>
+
+<p>
+  This page shows the most popular destination airports (by number of flights)
+  operated by your airline over two time windows:
+</p>
+<ul>
+  <li><strong>Last 3 months</strong></li>
+  <li><strong>Last 12 months</strong></li>
+</ul>
+
+<hr>
+
+<h3>Top destinations – last 3 months</h3>
+{% if top_3m and top_3m|length > 0 %}
+  <table class="table table-bordered table-striped">
+    <thead>
+      <tr>
+        <th>Destination City</th>
+        <th>Destination Airport</th>
+        <th>Flights Arriving</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in top_3m %}
+      <tr>
+        <td>{{ row.dest_city }}</td>
+        <td>{{ row.dest_airport }}</td>
+        <td>{{ row.flight_count }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>No destination data found for the last 3 months.</p>
+{% endif %}
+
+<hr>
+
+<h3>Top destinations – last 12 months</h3>
+{% if top_1y and top_1y|length > 0 %}
+  <table class="table table-bordered table-striped">
+    <thead>
+      <tr>
+        <th>Destination City</th>
+        <th>Destination Airport</th>
+        <th>Flights Arriving</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in top_1y %}
+      <tr>
+        <td>{{ row.dest_city }}</td>
+        <td>{{ row.dest_airport }}</td>
+        <td>{{ row.flight_count }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>No destination data found for the last 12 months.</p>
+{% endif %}
+
 {% endblock %}
