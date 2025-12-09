@@ -182,8 +182,10 @@ def create_flight():
         airplane_id_raw = (request.form.get("airplane_id") or "").strip()
         status = (request.form.get("status") or "upcoming").strip() or "upcoming"
 
-        if not (flight_num_raw and departure_airport and arrival_airport and
-                departure_time and arrival_time and price_raw and airplane_id_raw):
+        if not (
+            flight_num_raw and departure_airport and arrival_airport
+            and departure_time and arrival_time and price_raw and airplane_id_raw
+        ):
             flash("All fields are required.", "danger")
             cur.close()
             conn.close()
@@ -195,6 +197,14 @@ def create_flight():
             airplane_id = int(airplane_id_raw)
         except ValueError:
             flash("Flight number, price, and airplane ID must be numeric.", "danger")
+            cur.close()
+            conn.close()
+            return redirect(url_for("admin_staff.create_flight"))
+
+        # NEW: do not allow arrival before or equal to departure
+        # Works because ISO-like datetime strings compare in chronological order.
+        if arrival_time <= departure_time:
+            flash("Arrival time must be after departure time.", "danger")
             cur.close()
             conn.close()
             return redirect(url_for("admin_staff.create_flight"))
@@ -240,6 +250,7 @@ def create_flight():
         airports=airports,
         airplane_ids=airplane_ids,
     )
+
 
 
 
